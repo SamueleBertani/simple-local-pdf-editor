@@ -9,31 +9,17 @@ export function HandwritingInput() {
 
     if (activeTool !== 'handwriting') return null;
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
         if (!text) return;
 
-        // Generate Path
-        const pathData = generateHandwriting(text);
-
-        // Wrap in SVG
-        // Estimate width based on char count logic from generator
-        // This is approximate. Logic: 12*2 per char?
-        const width = text.length * 24 + 20;
-        const height = 50; // 10 * 2  + margins
-
-        const svgString = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-        <path d="${pathData}" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    `;
-
-        const url = `data:image/svg+xml;base64,${btoa(svgString)}`;
-
-        setPendingImage(url);
-        // User can now click to place. 
-        // Logic in CanvasOverlay handles the placement.
-        // We stay in 'handwriting' mode until placed? 
-        // Actually CanvasOverlay resets to 'select' after placement.
+        try {
+            // Generate SVG Data URL from text using Opentype.js
+            const url = await generateHandwriting(text);
+            setPendingImage(url);
+        } catch (error: any) {
+            console.error('Failed to generate handwriting:', error);
+            alert(`Error: ${error.message || error}`);
+        }
     };
 
     return (

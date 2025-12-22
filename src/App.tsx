@@ -1,6 +1,6 @@
 import type { ChangeEvent, DragEvent } from 'react';
 import { useState } from 'react';
-import { Upload, FileText, Download } from 'lucide-react';
+import { Upload, Download } from 'lucide-react';
 import { PDFJS } from './core/pdf/pdfWorker';
 import { usePDFStore } from './store/usePDFStore';
 import { PDFViewer } from './components/viewer/PDFViewer';
