@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ToolType = 'select' | 'handwriting' | 'image' | 'stamp';
+export type ToolType = 'select' | 'handwriting' | 'image' | 'stamp' | 'text' | 'rectangle';
 
 interface ToolState {
     activeTool: ToolType;

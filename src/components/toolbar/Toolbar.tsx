@@ -1,4 +1,4 @@
-import { MousePointer2, Pen, Image as ImageIcon, Stamp } from 'lucide-react';
+import { MousePointer2, Pen, Image as ImageIcon, Stamp, Type, Square } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { ToolType } from '../../store/useToolStore';
 import { useToolStore } from '../../store/useToolStore';
@@ -59,6 +59,8 @@ export function Toolbar() {
         <div className="flex flex-col gap-2 w-full px-4 relative">
             <ToolBtn tool="select" icon={MousePointer2} label="Select" />
             <ToolBtn tool="handwriting" icon={Pen} label="Handwriting" />
+            <ToolBtn tool="text" icon={Type} label="Text" />
+            <ToolBtn tool="rectangle" icon={Square} label="Cover" />
             <ToolBtn tool="image" icon={ImageIcon} label="Image" />
             <ToolBtn tool="stamp" icon={Stamp} label="Stamp" />
 

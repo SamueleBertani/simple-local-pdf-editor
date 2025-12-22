@@ -7,6 +7,8 @@ import { PDFViewer } from './components/viewer/PDFViewer';
 import { Button } from './components/ui/Button';
 import { Toolbar } from './components/toolbar/Toolbar';
 import { HandwritingInput } from './components/toolbar/HandwritingInput';
+import { TextInput } from './components/toolbar/TextInput';
+import { RectangleInput } from './components/toolbar/RectangleInput';
 import { useShortcuts } from './hooks/useShortcuts';
 import { exportToPdf, exportToImages } from './core/pdf/exporter';
 import { clsx } from 'clsx';
@@ -75,6 +77,8 @@ function App() {
             {/* Tools */}
             <Toolbar />
             <HandwritingInput />
+            <TextInput />
+            <RectangleInput />
 
             <div className="flex-1" /> {/* Spacer */}
 

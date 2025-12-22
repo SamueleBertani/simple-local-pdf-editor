@@ -5,28 +5,26 @@ import fontUrl from '../../assets/Caveat-Regular.ttf';
 let cachedFont: opentype.Font | null = null;
 const FONT_URL = fontUrl;
 
-export async function generateHandwriting(text: string, color: string = 'black'): Promise<string> {
-    console.log('Generating handwriting for:', text);
-    console.log('Opentype object:', opentype);
-    console.log('Font URL:', FONT_URL);
+export interface HandwritingOptions {
+    color?: string;
+    strokeWidth?: number;
+    randomness?: number; // 0 to 2, default 1
+}
+
+export async function generateHandwriting(text: string, options: HandwritingOptions = {}): Promise<string> {
+    const { color = 'black', strokeWidth = 1, randomness = 1 } = options;
 
     if (!cachedFont) {
         try {
             if (!opentype) throw new Error('Opentype library is undefined. Check import.');
 
-            console.log('Fetching font...');
             const response = await fetch(FONT_URL);
-            console.log('Fetch response status:', response.status);
-
             if (!response.ok) {
                 throw new Error(`Network response error: ${response.status} ${response.statusText}`);
             }
 
             const buffer = await response.arrayBuffer();
-            console.log('Buffer received, size:', buffer.byteLength);
-
             cachedFont = opentype.parse(buffer);
-            console.log('Font parsed successfully');
         } catch (error) {
             console.error('Detailed handwriting error:', error);
             throw error;
@@ -35,32 +33,111 @@ export async function generateHandwriting(text: string, color: string = 'black')
 
     if (!cachedFont) throw new Error('Failed to load font');
 
-    const fontSize = 72; // Base size
-    const path = cachedFont.getPath(text, 0, fontSize, fontSize); // x=0, y=fontSize (baseline)
+    const fontSize = 72;
+    const glyphs = cachedFont.stringToGlyphs(text);
+    const scale = 1 / cachedFont.unitsPerEm * fontSize;
 
-    // Apply Jitter
-    path.commands.forEach((cmd: any) => {
-        const jitter = () => (Math.random() - 0.5) * 2; // +/- 1
+    // Master path to accumulate all glyph paths
+    const masterPath = new opentype.Path();
 
-        if (cmd.x !== undefined) cmd.x += jitter();
-        if (cmd.y !== undefined) cmd.y += jitter();
-        if (cmd.x1 !== undefined) cmd.x1 += jitter();
-        if (cmd.y1 !== undefined) cmd.y1 += jitter();
-        if (cmd.x2 !== undefined) cmd.x2 += jitter();
-        if (cmd.y2 !== undefined) cmd.y2 += jitter();
+    let xCurr = 0;
+
+    glyphs.forEach((glyph) => {
+        if (!glyph.unicode) {
+            // Handle spacing/unknown
+            xCurr += glyph.advanceWidth ? glyph.advanceWidth * scale : fontSize * 0.3;
+            return;
+        }
+
+        // Random variations scaled by randomness factor
+        const rot = (Math.random() - 0.5) * 10 * randomness; // +/- 5 degrees * factor
+        const yOff = (Math.random() - 0.5) * 10 * randomness; // +/- 5 pixels baseline * factor
+        const xOff = (Math.random() - 0.5) * 5 * randomness;  // +/- 2.5 pixels spacing * factor
+
+        // Get path for the glyph at (0,0) so we can rotate it easily
+        const path = glyph.getPath(0, 0, fontSize);
+
+        // Apply transformations manually to commands
+        const bbox = glyph.getBoundingBox();
+        const cx = (bbox.x1 + bbox.x2) * scale / 2;
+        const cy = (bbox.y1 + bbox.y2) * scale / 2;
+
+        const rad = rot * Math.PI / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+
+        path.commands.forEach((cmd: any) => {
+            if (cmd.x !== undefined && cmd.y !== undefined) {
+                const px = cmd.x - cx;
+                const py = cmd.y - cy;
+
+                const nx = px * cos - py * sin + cx;
+                const ny = px * sin + py * cos + cy;
+
+                cmd.x = nx + xCurr + xOff;
+                cmd.y = ny + fontSize + yOff;
+            }
+            if (cmd.x1 !== undefined && cmd.y1 !== undefined) {
+                const px = cmd.x1 - cx;
+                const py = cmd.y1 - cy;
+                const nx = px * cos - py * sin + cx;
+                const ny = px * sin + py * cos + cy;
+                cmd.x1 = nx + xCurr + xOff;
+                cmd.y1 = ny + fontSize + yOff;
+            }
+            if (cmd.x2 !== undefined && cmd.y2 !== undefined) {
+                const px = cmd.x2 - cx;
+                const py = cmd.y2 - cy;
+                const nx = px * cos - py * sin + cx;
+                const ny = px * sin + py * cos + cy;
+                cmd.x2 = nx + xCurr + xOff;
+                cmd.y2 = ny + fontSize + yOff;
+            }
+        });
+
+        masterPath.extend(path);
+
+        // Advance
+        xCurr += ((glyph.advanceWidth || 0) * scale) + xOff;
     });
 
-    const svgPath = path.toPathData(2);
-    const bbox = path.getBoundingBox();
-    const width = bbox.x2 - bbox.x1 + 10;
-    const height = bbox.y2 - bbox.y1 + 10;
+    const svgPath = masterPath.toPathData(2);
+    const bbox = masterPath.getBoundingBox();
+    const width = bbox.x2 - bbox.x1 + 20;
+    const height = bbox.y2 - bbox.y1 + 20;
 
-    // Check if width or height is NaN or 0 (empty text)
-    if (!width || !height) return '';
+    if (isNaN(width) || isNaN(height) || width <= 0 || null) return '';
+
+    const viewBoxX = bbox.x1 - 10;
+    const viewBoxY = bbox.y1 - 10;
+
+    const normalizedWeight = strokeWidth || 1;
+    let erodeRadius = 0;
+    let finalStrokeWidth = 0;
+
+    // Logic: 0.1 to 1.0 -> Erosion (Thinning)
+    // 1.0 to 3.0 -> Stroke (Thickening)
+    if (normalizedWeight < 1) {
+        erodeRadius = (1 - normalizedWeight) * 1; // E.g. 0.1 -> 0.9px erosion
+        finalStrokeWidth = 0;
+    } else {
+        erodeRadius = 0;
+        finalStrokeWidth = (normalizedWeight - 1) * 1.5; // E.g. 3 -> 3px stroke
+    }
+
+    const filterId = `erode-${Date.now()}`;
+    const filterDef = erodeRadius > 0 ? `
+        <defs>
+            <filter id="${filterId}">
+                <feMorphology operator="erode" radius="${erodeRadius}" />
+            </filter>
+        </defs>
+    ` : '';
 
     const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${bbox.x1} ${bbox.y1} ${width} ${height}">
-            <path d="${svgPath}" fill="${color}" stroke="${color}" stroke-width="1" />
+        <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="${viewBoxX} ${viewBoxY} ${width} ${height}">
+            ${filterDef}
+            <path d="${svgPath}" fill="${color}" stroke="${finalStrokeWidth > 0 ? color : 'none'}" stroke-width="${finalStrokeWidth}" ${erodeRadius > 0 ? `filter="url(#${filterId})"` : ''} />
         </svg>
     `;
 
