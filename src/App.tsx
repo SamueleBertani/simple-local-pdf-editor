@@ -41,57 +41,64 @@ function App() {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-slate-50 overflow-hidden text-slate-900 font-sans">
-      {/* Header */}
-      <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shadow-sm z-10">
-        <div className="flex items-center gap-2">
-          <div className="bg-indigo-600 p-1.5 rounded-lg">
-            <FileText className="w-5 h-5 text-white" />
-          </div>
-          <span className="font-bold text-lg tracking-tight">PDF Editor</span>
-        </div>
-
-        <div className="flex items-center gap-3">
-          {!pdfDocument && (
-            <div className="relative">
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileUpload}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
-              <Button variant="primary">
-                <Upload className="w-4 h-4 mr-2" />
-                Open PDF
-              </Button>
-            </div>
-          )}
-
-          {pdfDocument && (
-            <Button variant="secondary" onClick={() => window.location.reload()}>
-              Close File
-            </Button>
-          )}
-
-          <div className="flex gap-2">
-            <Button variant="ghost" disabled={!pdfDocument} onClick={handleExportPDF}>
-              <Download className="w-4 h-4 mr-2" />
-              Export PDF
-            </Button>
-            <Button variant="ghost" disabled={!pdfDocument} onClick={handleExportZIP}>
-              <Download className="w-4 h-4 mr-2" />
-              Export ZIP
-            </Button>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="flex-1 flex overflow-hidden relative">
-        {/* Toolbar Placeholder */}
+        {/* Sidebar */}
         {pdfDocument && (
-          <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-4 gap-4 z-10 shrink-0 relative">
+          <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
+            {/* Logo / Home */}
+            <button
+              onClick={() => setPdfDocument(null as any)} // Reset to null (using casting if type strictness complains about null vs Proxy) 
+              // actually Store says Proxy | null, so it should be fine. 
+              className="flex flex-col items-center gap-1 mb-2 hover:opacity-80 transition-opacity"
+              title="Back to Home"
+            >
+              <div className="bg-indigo-600 p-2 rounded-lg">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+            </button>
+
+            <div className="w-full h-px bg-slate-200" />
+
+            {/* Tools */}
             <Toolbar />
             <HandwritingInput />
+
+            <div className="flex-1" /> {/* Spacer */}
+
+            <div className="w-full h-px bg-slate-200" />
+
+            {/* Actions */}
+            <div className="flex flex-col gap-3 w-full px-2">
+              <button
+                onClick={handleExportPDF}
+                disabled={!pdfDocument}
+                className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-slate-50"
+                title="Save PDF"
+              >
+                <Download className="w-5 h-5" />
+                <span className="text-[10px] font-medium">PDF</span>
+              </button>
+
+              <button
+                onClick={handleExportZIP}
+                disabled={!pdfDocument}
+                className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-slate-50"
+                title="Save PNG (ZIP)"
+              >
+                <Download className="w-5 h-5" />
+                <span className="text-[10px] font-medium">PNG</span>
+              </button>
+
+              <button
+                onClick={() => window.location.reload()}
+                className="flex flex-col items-center gap-1 text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50 mt-2"
+                title="Close File"
+              >
+                <span className="text-xl font-bold leading-none">&times;</span>
+                <span className="text-[10px] font-medium">Close</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -99,18 +106,27 @@ function App() {
         <div className="flex-1 flex flex-col relative bg-slate-100">
           {!pdfDocument ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-              <Upload className="w-16 h-16 mb-4 text-slate-300" />
-              <p className="text-lg font-medium text-slate-500">Upload a PDF to start editing</p>
-              <p className="text-sm text-slate-400 mt-2">All processing happens locally in your browser.</p>
+              <div className="flex flex-col items-center gap-4 mb-8">
+                <div className="bg-indigo-600 p-4 rounded-2xl shadow-xl shadow-indigo-200">
+                  <FileText className="w-12 h-12 text-white" />
+                </div>
+                <h1 className="text-3xl font-bold text-slate-800">PDF Editor</h1>
+              </div>
 
-              <div className="mt-8 relative">
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={handleFileUpload}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-                <Button size="lg">Select Document</Button>
+              <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center max-w-md w-full mx-4">
+                <Upload className="w-12 h-12 mb-4 text-slate-300" />
+                <p className="text-lg font-medium text-slate-600 text-center mb-1">Upload a PDF to start editing</p>
+                <p className="text-sm text-slate-400 text-center mb-6">Processing happens locally in your browser.</p>
+
+                <div className="relative w-full">
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 opacity-0 cursor-pointer z-20"
+                  />
+                  <Button size="lg" className="w-full relative z-10 pointer-events-none">Select Document</Button>
+                </div>
               </div>
             </div>
           ) : (
