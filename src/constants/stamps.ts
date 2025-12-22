@@ -1,17 +1,24 @@
+// @ts-ignore
+import SamueleFirma from '../assets/SamueleFirma.png';
+// @ts-ignore
+import MontuFirma from '../assets/MontuFirma.png';
+// @ts-ignore
+import TimbroIndici from '../assets/timbroIndici.png';
+
 export const STAMPS = [
     {
-        id: 'approved',
-        label: 'Approved',
-        url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAyMDAgODAiPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSIxOTAiIGhlaWdodD0iNzAiIHJ4PSIxMCIgcnk9IjEwIiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojMDVhMDBlO3N0cm9rZS13aWR0aDo1O29wYWNpdHk6MC44Ii8+PHRleHQgeD0iMTAwIiB5PSI1MiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzA1YTAwZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgb3BhY2l0eT0iMC44IiB0cmFuc2Zvcm09InJvdGF0ZSgtNSAxMDAgNDApIj5BUFBST1ZFRDwvdGV4dD48L3N2Zz4='
+        id: 'firma_samuele',
+        label: 'Firma Samuele',
+        url: SamueleFirma
     },
     {
-        id: 'rejected',
-        label: 'Rejected',
-        url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAyMDAgODAiPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSIxOTAiIGhlaWdodD0iNzAiIHJ4PSIxMCIgcnk9IjEwIiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojZDAwMDAwO3N0cm9rZS13aWR0aDo1O29wYWNpdHk6MC44Ii8+PHRleHQgeD0iMTAwIiB5PSI1MiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iI2QwMDAwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgb3BhY2l0eT0iMC44IiB0cmFuc2Zvcm09InJvdGF0ZSgtNSAxMDAgNDApIj5SRUpFQ1RFRDwvdGV4dD48L3N2Zz4='
+        id: 'firma_montu',
+        label: 'Firma Montu',
+        url: MontuFirma
     },
     {
-        id: 'draft',
-        label: 'Draft',
-        url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAyMDAgODAiPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSIxOTAiIGhlaWdodD0iNzAiIHJ4PSIxMCIgcnk9IjEwIiBzdHlsZT0iZmlsbDpub25lO3N0cm9rZTojNjY2NjY2O3N0cm9rZS13aWR0aDo1O29wYWNpdHk6MC44Ii8+PHRleHQgeD0iMTAwIiB5PSI1MiIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzY2NjY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgb3BhY2l0eT0iMC44IiB0cmFuc2Zvcm09InJvdGF0ZSgtNSAxMDAgNDApIj5EUkFGVDwvdGV4dD48L3N2Zz4='
+        id: 'timbro_indici',
+        label: 'Timbro Indici',
+        url: TimbroIndici
     }
 ];
