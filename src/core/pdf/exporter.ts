@@ -37,10 +37,11 @@ export async function exportToPdf(
     downloadFile(new Blob([pdfBytes as any], { type: 'application/pdf' }), 'edited_document.pdf');
 }
 
-export async function exportToZip(
+export async function exportToImages(
     pdfProxy: PDFDocumentProxy,
     canvases: Record<number, any>
 ) {
+    const isSinglePage = pdfProxy.numPages === 1;
     const zip = new JSZip();
 
     for (let i = 1; i <= pdfProxy.numPages; i++) {
@@ -73,13 +74,19 @@ export async function exportToZip(
             });
         }
 
-        // 3. Add to ZIP
+        // 3. Handle Output
         const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
         if (blob) {
-            zip.file(`page_${i}.png`, blob);
+            if (isSinglePage) {
+                downloadFile(blob, 'edited_page.png');
+                return; // Exit function, no zip needed
+            } else {
+                zip.file(`page_${i}.png`, blob);
+            }
         }
     }
 
+    // Only generate zip if we haven't returned (i.e. multi-page)
     const content = await zip.generateAsync({ type: 'blob' });
     downloadFile(content, 'pages_export.zip');
 }

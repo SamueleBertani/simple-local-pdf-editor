@@ -37,7 +37,7 @@ export function HandwritingInput() {
     };
 
     return (
-        <div className="absolute top-4 left-24 bg-white p-4 rounded-xl shadow-xl border border-slate-200 z-50 animate-in fade-in zoom-in-95">
+        <div className="absolute top-4 left-64 bg-white p-4 rounded-xl shadow-xl border border-slate-200 z-50 animate-in fade-in zoom-in-95">
             <h3 className="text-sm font-semibold mb-2">Generate Handwriting</h3>
             <input
                 type="text"

@@ -1,4 +1,5 @@
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, DragEvent } from 'react';
+import { useState } from 'react';
 import { Upload, FileText, Download } from 'lucide-react';
 import { PDFJS } from './core/pdf/pdfWorker';
 import { usePDFStore } from './store/usePDFStore';
@@ -7,16 +8,16 @@ import { Button } from './components/ui/Button';
 import { Toolbar } from './components/toolbar/Toolbar';
 import { HandwritingInput } from './components/toolbar/HandwritingInput';
 import { useShortcuts } from './hooks/useShortcuts';
-import { exportToPdf, exportToZip } from './core/pdf/exporter';
+import { exportToPdf, exportToImages } from './core/pdf/exporter';
+import { clsx } from 'clsx';
 
 function App() {
   const { setPdfDocument, pdfDocument, canvases } = usePDFStore();
+  const [isDragging, setIsDragging] = useState(false);
+
   useShortcuts();
 
-  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const loadFile = async (file: File) => {
     if (file.type !== 'application/pdf') {
       alert('Please upload a valid PDF file');
       return;
@@ -29,6 +30,31 @@ function App() {
     setPdfDocument(doc);
   };
 
+  const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await loadFile(file);
+  };
+
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    await loadFile(file);
+  };
+
   const handleExportPDF = async () => {
     if (!pdfDocument) return;
     await exportToPdf(pdfDocument, canvases);
@@ -36,7 +62,7 @@ function App() {
 
   const handleExportZIP = async () => {
     if (!pdfDocument) return;
-    await exportToZip(pdfDocument, canvases);
+    await exportToImages(pdfDocument, canvases);
   };
 
   return (
@@ -45,21 +71,7 @@ function App() {
       <main className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
         {pdfDocument && (
-          <div className="w-20 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
-            {/* Logo / Home */}
-            <button
-              onClick={() => setPdfDocument(null as any)} // Reset to null (using casting if type strictness complains about null vs Proxy) 
-              // actually Store says Proxy | null, so it should be fine. 
-              className="flex flex-col items-center gap-1 mb-2 hover:opacity-80 transition-opacity"
-              title="Back to Home"
-            >
-              <div className="bg-indigo-600 p-2 rounded-lg">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-            </button>
-
-            <div className="w-full h-px bg-slate-200" />
-
+          <div className="w-64 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
             {/* Tools */}
             <Toolbar />
             <HandwritingInput />
@@ -69,34 +81,34 @@ function App() {
             <div className="w-full h-px bg-slate-200" />
 
             {/* Actions */}
-            <div className="flex flex-col gap-3 w-full px-2">
+            <div className="flex flex-col gap-3 w-full px-4">
               <button
                 onClick={handleExportPDF}
                 disabled={!pdfDocument}
-                className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-slate-50"
+                className="flex items-center gap-3 text-slate-600 hover:text-indigo-600 transition-colors p-3 rounded-lg hover:bg-slate-50 w-full"
                 title="Save PDF"
               >
                 <Download className="w-5 h-5" />
-                <span className="text-[10px] font-medium">PDF</span>
+                <span className="text-sm font-medium">Save PDF</span>
               </button>
 
               <button
                 onClick={handleExportZIP}
                 disabled={!pdfDocument}
-                className="flex flex-col items-center gap-1 text-slate-500 hover:text-indigo-600 transition-colors p-2 rounded-lg hover:bg-slate-50"
+                className="flex items-center gap-3 text-slate-600 hover:text-indigo-600 transition-colors p-3 rounded-lg hover:bg-slate-50 w-full"
                 title="Save PNG (ZIP)"
               >
                 <Download className="w-5 h-5" />
-                <span className="text-[10px] font-medium">PNG</span>
+                <span className="text-sm font-medium">Save PNG</span>
               </button>
 
               <button
                 onClick={() => window.location.reload()}
-                className="flex flex-col items-center gap-1 text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50 mt-2"
+                className="flex items-center gap-3 text-red-500 hover:text-red-600 transition-colors p-3 rounded-lg hover:bg-red-50 mt-2 w-full"
                 title="Close File"
               >
-                <span className="text-xl font-bold leading-none">&times;</span>
-                <span className="text-[10px] font-medium">Close</span>
+                <span className="text-xl font-bold leading-none w-5 text-center">&times;</span>
+                <span className="text-sm font-medium">Close File</span>
               </button>
             </div>
           </div>
@@ -107,16 +119,28 @@ function App() {
           {!pdfDocument ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
               <div className="flex flex-col items-center gap-4 mb-8">
-                <div className="bg-indigo-600 p-4 rounded-2xl shadow-xl shadow-indigo-200">
-                  <FileText className="w-12 h-12 text-white" />
-                </div>
-                <h1 className="text-3xl font-bold text-slate-800">PDF Editor</h1>
+                {/* Icon removed as requested */}
+                <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight">PDF Editor</h1>
               </div>
 
-              <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center max-w-md w-full mx-4">
-                <Upload className="w-12 h-12 mb-4 text-slate-300" />
-                <p className="text-lg font-medium text-slate-600 text-center mb-1">Upload a PDF to start editing</p>
-                <p className="text-sm text-slate-400 text-center mb-6">Processing happens locally in your browser.</p>
+              <div
+                className={clsx(
+                  "bg-white p-8 rounded-2xl shadow-sm border-2 flex flex-col items-center max-w-md w-full mx-4 transition-all duration-200",
+                  isDragging
+                    ? "border-indigo-500 bg-indigo-50 scale-105"
+                    : "border-slate-200 border-dashed"
+                )}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                <Upload className={clsx("w-12 h-12 mb-4 transition-colors", isDragging ? "text-indigo-600" : "text-slate-300")} />
+                <p className={clsx("text-lg font-medium text-center mb-1 transition-colors", isDragging ? "text-indigo-700" : "text-slate-600")}>
+                  {isDragging ? "Drop PDF here" : "Upload a PDF to start editing"}
+                </p>
+                <p className={clsx("text-sm text-center mb-6 transition-colors", isDragging ? "text-indigo-500" : "text-slate-400")}>
+                  {isDragging ? "Release to open" : "Drag & Drop or click to select"}
+                </p>
 
                 <div className="relative w-full">
                   <input
