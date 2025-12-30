@@ -70,15 +70,6 @@ export function ScannerEffectModal({ isOpen, onClose, onDownload, previewCanvas,
                                     className="h-5 w-5 accent-indigo-600"
                                 />
                             </div>
-                            <div className="flex-1 flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                                <label className="text-sm font-medium text-slate-700">Scan Bed</label>
-                                <input
-                                    type="checkbox"
-                                    checked={options.border}
-                                    onChange={e => setOptions({ ...options, border: e.target.checked })}
-                                    className="h-5 w-5 accent-indigo-600"
-                                />
-                            </div>
                         </div>
 
                         {/* Noise Slider */}
@@ -116,9 +107,37 @@ export function ScannerEffectModal({ isOpen, onClose, onDownload, previewCanvas,
                                 <span className="text-xs text-slate-500">{options.shadow}px</span>
                             </div>
                             <input
-                                type="range" min="0" max="20" step="1"
+                                type="range" min="-1" max="5" step="0.5"
                                 value={options.shadow}
                                 onChange={e => setOptions({ ...options, shadow: parseFloat(e.target.value) })}
+                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                            />
+                        </div>
+
+                        {/* Distortion Slider */}
+                        <div>
+                            <div className="flex justify-between mb-1">
+                                <label className="text-sm font-medium text-slate-700">Distortion</label>
+                                <span className="text-xs text-slate-500">{options.distortion?.toFixed(1) || 0}</span>
+                            </div>
+                            <input
+                                type="range" min="0" max="10" step="0.5"
+                                value={options.distortion || 0}
+                                onChange={e => setOptions({ ...options, distortion: parseFloat(e.target.value) })}
+                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                            />
+                        </div>
+
+                        {/* Chromatic Aberration Slider */}
+                        <div>
+                            <div className="flex justify-between mb-1">
+                                <label className="text-sm font-medium text-slate-700">Chromatic Aberration</label>
+                                <span className="text-xs text-slate-500">{options.chromaticAberration?.toFixed(1) || 0}px</span>
+                            </div>
+                            <input
+                                type="range" min="0" max="5" step="0.5"
+                                value={options.chromaticAberration || 0}
+                                onChange={e => setOptions({ ...options, chromaticAberration: parseFloat(e.target.value) })}
                                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                             />
                         </div>
