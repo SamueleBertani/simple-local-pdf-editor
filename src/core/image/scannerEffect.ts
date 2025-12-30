@@ -1,14 +1,27 @@
+/**
+ * Configuration options for the scanner effect simulation.
+ */
 export interface ScannerOptions {
-    noise: number; // 0-1
-    tilt: number; // degrees
+    /** 0-1: Intensity of random pixel noise (grain) */
+    noise: number;
+    /** Degrees: Angle of rotation to simulate misalignment */
+    tilt: number;
+    /** Convert image to grayscale if true */
     grayscale: boolean;
-    contrast: number; // 1 = normal
-    brightness: number; // 1 = normal
-    blur: number; // 0 = none
-    shadow: number; // Shadow strength/offset
+    /** Multiplier: 1 = normal, > 1 increases contrast */
+    contrast: number;
+    /** Multiplier: 1 = normal, > 1 increases brightness */
+    brightness: number;
+    /** Pixels: Amount of Gaussian blur to apply (0 = none) */
+    blur: number;
+    /** Pixels: Offset and size of the drop shadow (0 = none) */
+    shadow: number;
+    /** Enable rotation (used for random variation logic) */
     rotate: boolean;
-    distortion: number; // NEW: 0 to roughly 20 (amount of sine wave warp)
-    chromaticAberration: number; // NEW: 0 to 5 (pixels of offset)
+    /** 0-20: Intensity of sinusoidal distortion (paper warp) */
+    distortion: number;
+    /** Pixels: Offset amount for chromatic aberration (color fringing) */
+    chromaticAberration: number;
 }
 
 export const DEFAULT_SCANNER_OPTIONS: ScannerOptions = {
@@ -18,12 +31,27 @@ export const DEFAULT_SCANNER_OPTIONS: ScannerOptions = {
     contrast: 1.2,
     brightness: 1.0,
     blur: 0.5,
-    shadow: 1, // Default small shadow
+    shadow: 1,
     rotate: true,
     distortion: 1.0,
     chromaticAberration: 1.0,
 };
 
+/**
+ * Applies a set of realistic scanner effects to a source canvas.
+ * Simulates physical scanner imperfections including:
+ * - Misalignment (Tilt)
+ * - Shadow depth
+ * - Paper borders
+ * - Optical Distortion (Warping)
+ * - Chromatic Aberration (Lens fraying)
+ * - Sensor Noise
+ * - Lighting adjustments (Contrast/Brightness)
+ * 
+ * @param sourceCanvas - The input canvas containing the original page/image.
+ * @param options - Configuration object for effect intensity.
+ * @returns A promise resolving to a new HTMLCanvasElement with effects applied.
+ */
 export async function applyScannerEffect(
     sourceCanvas: HTMLCanvasElement,
     options: ScannerOptions

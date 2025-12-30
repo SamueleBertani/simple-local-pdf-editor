@@ -11,6 +11,10 @@ interface ScannerEffectModalProps {
     isProcessing: boolean;
 }
 
+/**
+ * Modal component ("Scanner Studio") that allows users to configure and preview scanner effects.
+ * Provides real-time preview of the effect applied to the first page of the PDF.
+ */
 export function ScannerEffectModal({ isOpen, onClose, onDownload, previewCanvas, isProcessing }: ScannerEffectModalProps) {
     const [options, setOptions] = useState<ScannerOptions>(DEFAULT_SCANNER_OPTIONS);
     const canvasRef = useRef<HTMLCanvasElement>(null);

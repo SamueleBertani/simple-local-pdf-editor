@@ -2,6 +2,13 @@ import { PDFDocument } from 'pdf-lib';
 import JSZip from 'jszip';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
+/**
+ * Exports the current PDF document and its overlay canvases to a new PDF file.
+ * Embeds the overlay canvases as PNG images on top of the existing PDF pages.
+ * 
+ * @param pdfProxy - The source PDF document proxy from PDF.js.
+ * @param canvases - A record mapping page numbers (1-based) to Fabric.js canvas instances.
+ */
 export async function exportToPdf(
     pdfProxy: PDFDocumentProxy,
     canvases: Record<number, any>
@@ -40,9 +47,19 @@ export async function exportToPdf(
 import { applyScannerEffect } from '../image/scannerEffect';
 import type { ScannerOptions } from '../image/scannerEffect';
 
+/**
+ * Renders a single PDF page and its overlay annotations to a standard HTML Canvas.
+ * Used for generating previews and for the final image export process.
+ * 
+ * @param pdfProxy - The source PDF document.
+ * @param pageIndex - The 1-based page number to render.
+ * @param overlayCanvas - Optional Fabric.js canvas containing annotations for this page.
+ * @param scale - Rendering scale (default 2 for high DPI).
+ * @returns A promise resolving to the rendered HTMLCanvasElement.
+ */
 export async function renderPageToCanvas(
     pdfProxy: PDFDocumentProxy,
-    pageIndex: number, // 0-based index? No, getPage is 1-based, let's stick to 1-based for PDF page num
+    pageIndex: number,
     overlayCanvas?: any,
     scale: number = 2
 ): Promise<HTMLCanvasElement> {
@@ -77,6 +94,16 @@ export async function renderPageToCanvas(
     return canvas;
 }
 
+/**
+ * Exports the PDF pages as images (PNG), optionally applying "Scanner Effects".
+ * If multiple pages are exported, downloads a ZIP file.
+ * If scanner effects are enabled, randomizes certain parameters (like tilt) per page 
+ * to create a naturally imperfect batch scan look.
+ * 
+ * @param pdfProxy - The source PDF document.
+ * @param canvases - A record of overlay canvases.
+ * @param scannerOptions - Optional configuration for scanner effects.
+ */
 export async function exportToImages(
     pdfProxy: PDFDocumentProxy,
     canvases: Record<number, any>,
