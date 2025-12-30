@@ -13,6 +13,9 @@ interface PDFState {
     unregisterCanvas: (pageIndex: number) => void;
 }
 
+/**
+ * Store for managing PDF document state, paging, and canvas references.
+ */
 export const usePDFStore = create<PDFState>((set) => ({
     pdfDocument: null,
     pages: [],

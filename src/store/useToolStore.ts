@@ -15,6 +15,9 @@ interface ToolState {
     setToolSettings: (settings: Partial<ToolState['toolSettings']>) => void;
 }
 
+/**
+ * Store for managing the active tool (select, draw, stamp, etc.) and its settings.
+ */
 export const useToolStore = create<ToolState>((set) => ({
     activeTool: 'select',
     pendingImage: null,

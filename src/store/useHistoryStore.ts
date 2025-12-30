@@ -96,40 +96,26 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     }
 }));
 
+// Helper to find an object on a canvas by its custom ID property
+function FindObjectById(canvas: any, id?: string) {
+    if (!id) return null;
+    // @ts-ignore
+    return canvas.getObjects().find(o => o.id === id);
+}
+
+// ... existing applies ...
 async function applyUndo(canvas: any, action: HistoryAction) {
     if (action.type === 'add') {
-        // Undo Add = Remove
-        // We need to find the object. It might have a different ID reference if reloaded, 
-        // but typically valid in session. Ideally we use a custom ID or verify via properties.
-        // Fabric objects don't have stable IDs by default unless we set them.
-        // For this V1, we try to match by strict equality if object is same instance (unlikely if page reloaded)
-        // or by a custom ID we should assign on creation.
-
-        // BETTER: We will rely on our own ID property 'id' if we start setting it.
-        // For now, let's try to match by data content or assume session persistence.
-
-        // Actually, 'add' stored the DATA. 
-        // To remove, we need to find the object on canvas that matches.
-        // For robust undo/redo, we SHOULD assign IDs to everything.
-        // But for "lazy" implementation, we might just look for the object that was added.
-        // However, we don't store the live reference in history (bad for memory).
-
-        // STRATEGY: Find object by custom ID.
-        // If we don't have IDs, this is hard.
-
-        // Let's assume we modify useCanvasHistory to assign IDs on add.
         const obj = FindObjectById(canvas, action.objectId);
         if (obj) {
             canvas.remove(obj);
         }
     } else if (action.type === 'remove') {
-        // Undo Remove = Add back
         const objects = await fabric.util.enlivenObjects([action.data], {});
         objects.forEach((o: any) => {
             canvas.add(o);
         });
     } else if (action.type === 'modify') {
-        // Undo Modify = Restore previous data
         const obj = FindObjectById(canvas, action.objectId);
         if (obj && action.previousData) {
             obj.set(action.previousData);
@@ -140,29 +126,20 @@ async function applyUndo(canvas: any, action: HistoryAction) {
 
 async function applyRedo(canvas: any, action: HistoryAction) {
     if (action.type === 'add') {
-        // Redo Add = Add again
         const objects = await fabric.util.enlivenObjects([action.data], {});
         objects.forEach((o: any) => {
             canvas.add(o);
         });
     } else if (action.type === 'remove') {
-        // Redo Remove = Remove again
         const obj = FindObjectById(canvas, action.objectId);
         if (obj) {
             canvas.remove(obj);
         }
     } else if (action.type === 'modify') {
-        // Redo Modify = Restore new data
         const obj = FindObjectById(canvas, action.objectId);
         if (obj) {
             obj.set(action.data);
             obj.setCoords();
         }
     }
-}
-
-function FindObjectById(canvas: any, id?: string) {
-    if (!id) return null;
-    // @ts-ignore
-    return canvas.getObjects().find(o => o.id === id);
 }

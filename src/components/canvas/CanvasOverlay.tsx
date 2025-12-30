@@ -60,15 +60,9 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                     fabricCanvas.add(img);
                     fabricCanvas.setActiveObject(img);
 
-                    // Keep state active for multiple placements
-                    // setActiveTool('select');
-                    // setPendingImage(null);
+                    // Note: We deliberately do NOT reset the active tool here (Sticky Tools)
+                    // The user must manually switch back to 'select' or press Escape.
                 }).catch((err) => {
-                    // Fallback for v5 callback style if promise fails (Runtime check not easy here, but usually v6 is Promise)
-                    // If v5, fromURL returns ref, ignores promise.
-                    // We assume v6 for now given the import style. 
-                    // If v5: FabricImage.fromURL(pendingImage, (img) => { ... })
-                    // I'll stick to v6 assumption based on 'import { Canvas } from fabric' working.
                     console.error("Error loading image", err);
                 });
             }

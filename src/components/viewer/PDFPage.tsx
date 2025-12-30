@@ -7,6 +7,10 @@ interface PDFPageProps {
     scale: number;
 }
 
+/**
+ * Component to render a single PDF page.
+ * Handles the canvas lifecycle and integrates the interactive overlay.
+ */
 export function PDFPage({ page, scale }: PDFPageProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 

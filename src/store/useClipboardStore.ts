@@ -7,6 +7,9 @@ interface ClipboardState {
     setLastActivePageIndex: (index: number) => void;
 }
 
+/**
+ * Store for managing clipboard state (Copy/Paste)
+ */
 export const useClipboardStore = create<ClipboardState>((set) => ({
     clipboard: null,
     lastActivePageIndex: null,

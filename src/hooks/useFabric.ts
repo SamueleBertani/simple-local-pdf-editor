@@ -7,6 +7,13 @@ interface UseFabricProps {
     scale: number;
 }
 
+/**
+ * Custom hook to initialize and manage a Fabric.js canvas instance.
+ * Handles canvas creation, resizing, and cleanup.
+ * 
+ * @param props Configuration properties (width, height, scale)
+ * @returns Ref for the canvas element and the initialized fabric.Canvas instance
+ */
 export function useFabric({ width, height, scale }: UseFabricProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [fabricCanvas, setFabricCanvas] = useState<Canvas | null>(null);
@@ -24,11 +31,12 @@ export function useFabric({ width, height, scale }: UseFabricProps) {
 
         setFabricCanvas(canvas);
 
-        // Initial scale match (if needed, though mostly we just match dimensions)
-        // fabric handles internal scaling if we want, but for now we just size the canvas 1:1 with pixels
-
         return () => {
-            canvas.dispose();
+            try {
+                canvas.dispose();
+            } catch (e) {
+                // Ignore errors during disposal
+            }
             setFabricCanvas(null);
         };
     }, []); // Run once on mount (dimensions handled in separate effect to avoid full recreation if possible)
@@ -39,7 +47,7 @@ export function useFabric({ width, height, scale }: UseFabricProps) {
 
         fabricCanvas.setDimensions({ width, height });
         fabricCanvas.setZoom(scale); // Optional: Match zoom if we want vector scaling behavior
-        fabricCanvas.renderAll();
+        fabricCanvas.requestRenderAll();
 
     }, [fabricCanvas, width, height, scale]);
 

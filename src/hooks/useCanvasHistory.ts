@@ -48,27 +48,6 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
             });
         };
 
-        // Modification is tricky. We need 'before' state.
-        // event 'object:modified' fires at end of transform.
-        // We can capture state on 'mouse:down' or 'object:scaling/moving' start? 
-        // Fabric doesn't have a clean 'transform:start', but we have 'before:transform'?
-        // Actually 'object:modified' provides target. We just need to know what it WAS.
-        // We can use a map of objects? Or use the store.
-
-        // Better strategy: On selection created, save state? 
-        // But invalid if we select -> wait -> modify.
-
-        // Fabric has 'object:modified'.
-        // We can try to capture 'previous' state by listening to 'mouse:down' on an object?
-
-        // Let's use 'before:transform' if available in v6? Checked docs: object:modifying?
-        // Standard pattern: preserve state on selection, or on transform start.
-
-        // Simpler: use a map of known object states for the page?
-
-        // Let's rely on `transform` events?
-        // Actually, just capturing on 'mouse:down' (if target exists) is a decent proxy for "start of potentical action".
-
         // We'll capture state when an object becomes active (selected)
         // If it is modified later, we use that initial captured state as 'previous'.
         const handleSelectionCreated = (e: any) => {
@@ -85,6 +64,10 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
             }
         };
 
+        /**
+         * Event handler for when an object is modified (moved, scaled, rotated).
+         * Checks if the modification is valid (matched ID) and pushes to history.
+         */
         const handleModified = (e: any) => {
             if (isUndoRedoOperation) return;
             const obj = e.target;
@@ -94,14 +77,15 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
                     type: 'modify',
                     pageIndex,
                     objectId: obj.id,
-                    data: obj.toObject(['id', 'left', 'top', 'width', 'height', 'scaleX', 'scaleY', 'fill', 'stroke', 'text', 'angle']),
+                    data: obj.toObject(['id', 'left', 'top', 'width', 'height', 'scaleX', 'scaleY', 'fill', 'stroke', 'text', 'angle', 'fontFamily', 'fontSize']),
                     previousData: activeModification.current.previousData
                 });
 
-                // Update current as new base for next modification
+                // Update active modification state to the new current state
+                // This ensures subsequent modifications use the correct "previous" state relative to the last action
                 activeModification.current = {
                     target: obj.id,
-                    previousData: obj.toObject(['id', 'left', 'top', 'width', 'height', 'scaleX', 'scaleY', 'fill', 'stroke', 'text', 'angle'])
+                    previousData: obj.toObject(['id', 'left', 'top', 'width', 'height', 'scaleX', 'scaleY', 'fill', 'stroke', 'text', 'angle', 'fontFamily', 'fontSize'])
                 };
             }
         };

@@ -3,6 +3,10 @@ import { usePDFStore } from '../../store/usePDFStore';
 import { PDFPage } from './PDFPage';
 import { Loader2 } from 'lucide-react';
 
+/**
+ * Main viewer component that renders the PDF document.
+ * Iterates through pages and renders them via PDFPage components.
+ */
 export function PDFViewer() {
     const { pdfDocument, scale } = usePDFStore();
     const [pages, setPages] = useState<any[]>([]);
