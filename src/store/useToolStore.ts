@@ -9,6 +9,8 @@ interface ToolState {
         color: string;
         width: number;
         opacity: number;
+        fontSize: number;
+        fontFamily: string;
     };
     setActiveTool: (tool: ToolType) => void;
     setPendingImage: (image: string | null) => void;
@@ -25,6 +27,8 @@ export const useToolStore = create<ToolState>((set) => ({
         color: '#000000',
         width: 2,
         opacity: 1,
+        fontSize: 20,
+        fontFamily: 'sans-serif',
     },
     setActiveTool: (tool) => set({ activeTool: tool }),
     setPendingImage: (image) => set({ pendingImage: image }),

@@ -1,4 +1,4 @@
-import opentype from 'opentype.js';
+import * as opentype from 'opentype.js';
 // @ts-ignore
 import fontUrl from '../../assets/Caveat-Regular.ttf';
 
@@ -9,14 +9,17 @@ export interface HandwritingOptions {
     color?: string;
     strokeWidth?: number;
     randomness?: number; // 0 to 2, default 1
+    seed?: number; // Variation seed
 }
 
 export async function generateHandwriting(text: string, options: HandwritingOptions = {}): Promise<string> {
-    const { color = 'black', strokeWidth = 1, randomness = 1 } = options;
+    const { color = 'black', strokeWidth = 1, randomness = 1, seed = 0 } = options;
 
     if (!cachedFont) {
         try {
-            if (!opentype) throw new Error('Opentype library is undefined. Check import.');
+            // Handle both default export and star import scenarios
+            const lib = (opentype as any).default || opentype;
+            if (!lib || !lib.parse) throw new Error('Opentype library is not loaded correctly.');
 
             const response = await fetch(FONT_URL);
             if (!response.ok) {
@@ -24,7 +27,7 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
             }
 
             const buffer = await response.arrayBuffer();
-            cachedFont = opentype.parse(buffer);
+            cachedFont = lib.parse(buffer);
         } catch (error) {
             console.error('Detailed handwriting error:', error);
             throw error;
@@ -49,10 +52,20 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
             return;
         }
 
+        // Simple seeded random function
+        const pseudoRandom = () => {
+            const x = Math.sin(seed + glyph.index + xCurr) * 10000;
+            return x - Math.floor(x);
+        };
+
         // Random variations scaled by randomness factor
-        const rot = (Math.random() - 0.5) * 10 * randomness; // +/- 5 degrees * factor
-        const yOff = (Math.random() - 0.5) * 10 * randomness; // +/- 5 pixels baseline * factor
-        const xOff = (Math.random() - 0.5) * 5 * randomness;  // +/- 2.5 pixels spacing * factor
+        const r1 = seed ? pseudoRandom() : Math.random();
+        const r2 = seed ? pseudoRandom() : Math.random();
+        const r3 = seed ? pseudoRandom() : Math.random();
+
+        const rot = (r1 - 0.5) * 10 * randomness; // +/- 5 degrees * factor
+        const yOff = (r2 - 0.5) * 10 * randomness; // +/- 5 pixels baseline * factor
+        const xOff = (r3 - 0.5) * 5 * randomness;  // +/- 2.5 pixels spacing * factor
 
         // Get path for the glyph at (0,0) so we can rotate it easily
         const path = glyph.getPath(0, 0, fontSize);
