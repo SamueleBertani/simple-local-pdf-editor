@@ -23,8 +23,11 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
     const isDragging = useRef(false);
     const startPos = useRef({ x: 0, y: 0 });
     const activeShape = useRef<any>(null);
+    const ghostObj = useRef<any>(null); // Ghost object for preview
 
     useCanvasHistory(fabricCanvas, pageIndex);
+
+    // Ghost logic merged into main interaction effect below
 
     useEffect(() => {
         if (fabricCanvas) {
@@ -46,93 +49,122 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
         }
     }, [fabricCanvas, pageIndex, registerCanvas, unregisterCanvas, setLastActivePageIndex]);
 
+    // Manage Ghost Object & Interactions
     useEffect(() => {
         if (!fabricCanvas) return;
 
-        // 1. Configure Drawing Mode (Disabled for all currently, using custom implementations)
+        // 1. Configure Drawing Mode
         fabricCanvas.isDrawingMode = false;
+
+        // Helper: Update Ghost
+        const updateGhost = () => {
+            if (ghostObj.current) {
+                fabricCanvas.remove(ghostObj.current);
+                ghostObj.current = null;
+            }
+
+            if (activeTool === 'text') {
+                const text = new IText('Type here', {
+                    fontFamily: toolSettings.fontFamily,
+                    fontSize: toolSettings.fontSize,
+                    fill: toolSettings.color,
+                    opacity: 0.5,
+                    evented: false,
+                    selectable: false,
+                    originX: 'left',
+                    originY: 'top',
+                    data: { isGhost: true }
+                });
+                ghostObj.current = text;
+            } else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
+                FabricImage.fromURL(pendingImage).then((img) => {
+                    if (!activeTool.match(/image|stamp|handwriting/)) return;
+                    img.set({
+                        opacity: 0.5,
+                        evented: false,
+                        selectable: false,
+                        originX: 'center',
+                        originY: 'center',
+                        scaleX: 0.5,
+                        scaleY: 0.5,
+                        data: { isGhost: true }
+                    });
+                    ghostObj.current = img;
+                    fabricCanvas.requestRenderAll();
+                });
+            }
+        };
+
+        // Initial setup
+        updateGhost();
 
         // 2. Interaction Handlers
         const handleMouseDown = (opt: any) => {
             const pointer = fabricCanvas.getPointer(opt.e);
 
-            // Allow selection of existing objects logic (sticky tools)
-            if (opt.target) return;
+            // Allow selection of existing objects (ignore if clicking ghost)
+            if (opt.target && !opt.target.data?.isGhost) return;
 
-            // A. Rectangle: Start Drag
             if (activeTool === 'rectangle') {
                 isDragging.current = true;
                 startPos.current = { x: pointer.x, y: pointer.y };
-
                 const rect = new Rect({
-                    left: pointer.x,
-                    top: pointer.y,
-                    originX: 'left',
-                    originY: 'top',
-                    width: 0,
-                    height: 0,
+                    left: pointer.x, top: pointer.y,
+                    width: 0, height: 0,
                     fill: toolSettings.color,
-                    selectable: false, // Not selectable while drawing
-                    evented: false,
+                    selectable: false, evented: false,
+                    originX: 'left', originY: 'top'
                 });
-
                 activeShape.current = rect;
                 fabricCanvas.add(rect);
-            }
-            // B. Text: Click to Place
-            else if (activeTool === 'text') {
+            } else if (activeTool === 'text') {
                 const text = new IText('Type here', {
-                    left: pointer.x,
-                    top: pointer.y,
+                    left: pointer.x, top: pointer.y,
                     fontFamily: toolSettings.fontFamily,
                     fontSize: toolSettings.fontSize,
-                    fill: toolSettings.color,
+                    fill: toolSettings.color
                 });
-
                 fabricCanvas.add(text);
                 fabricCanvas.setActiveObject(text);
                 text.enterEditing();
                 text.selectAll();
-                // Sticky tool: Do not reset to 'select'
-            }
-            // C. Image/Stamp/Handwriting (Click to Place)
-            else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
+            } else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
                 FabricImage.fromURL(pendingImage).then((img) => {
                     img.set({
-                        left: pointer.x,
-                        top: pointer.y,
-                        originX: 'center',
-                        originY: 'center',
-                        scaleX: 0.5,
-                        scaleY: 0.5,
+                        left: pointer.x, top: pointer.y,
+                        originX: 'center', originY: 'center',
+                        scaleX: 0.5, scaleY: 0.5
                     });
                     fabricCanvas.add(img);
                     fabricCanvas.setActiveObject(img);
-                }).catch((err) => {
-                    console.error("Error loading image", err);
-                });
+                }).catch(console.error);
             }
         };
 
         const handleMouseMove = (opt: any) => {
-            if (!isDragging.current || !activeShape.current) return;
             const pointer = fabricCanvas.getPointer(opt.e);
 
-            if (activeTool === 'rectangle') {
+            // Move Ghost
+            if (ghostObj.current) {
+                ghostObj.current.set({ left: pointer.x, top: pointer.y });
+                if (!fabricCanvas.contains(ghostObj.current)) {
+                    fabricCanvas.add(ghostObj.current);
+                }
+                // Fix: bringToFront is on canvas, not object in newer fabric versions
+                fabricCanvas.bringObjectToFront(ghostObj.current);
+                fabricCanvas.requestRenderAll(); // Request render ensures 60fps
+            }
+
+            // Move Drag Shape (Rectangle)
+            if (isDragging.current && activeShape.current && activeTool === 'rectangle') {
                 const rect = activeShape.current;
                 const startX = startPos.current.x;
                 const startY = startPos.current.y;
-
-                // Calculate dimensions
                 const width = Math.abs(pointer.x - startX);
                 const height = Math.abs(pointer.y - startY);
-
                 rect.set({ width, height });
-
-                // Handle negative/reverse dragging
                 if (pointer.x < startX) rect.set({ left: pointer.x });
                 if (pointer.y < startY) rect.set({ top: pointer.y });
-
                 fabricCanvas.requestRenderAll();
             }
         };
@@ -149,14 +181,25 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
             }
         };
 
+        const handleMouseOut = () => {
+            if (ghostObj.current) {
+                fabricCanvas.remove(ghostObj.current);
+                fabricCanvas.requestRenderAll();
+            }
+        };
+
         fabricCanvas.on('mouse:down', handleMouseDown);
         fabricCanvas.on('mouse:move', handleMouseMove);
         fabricCanvas.on('mouse:up', handleMouseUp);
+        fabricCanvas.on('mouse:out', handleMouseOut);
 
         return () => {
+            if (ghostObj.current && fabricCanvas) fabricCanvas.remove(ghostObj.current);
+            ghostObj.current = null;
             fabricCanvas.off('mouse:down', handleMouseDown);
             fabricCanvas.off('mouse:move', handleMouseMove);
             fabricCanvas.off('mouse:up', handleMouseUp);
+            fabricCanvas.off('mouse:out', handleMouseOut);
         };
     }, [fabricCanvas, activeTool, toolSettings, pendingImage, setActiveTool]);
 
