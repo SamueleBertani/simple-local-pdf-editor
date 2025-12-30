@@ -6,10 +6,7 @@ import { usePDFStore } from './store/usePDFStore';
 import { PDFViewer } from './components/viewer/PDFViewer';
 import { Button } from './components/ui/Button';
 import { Toolbar } from './components/toolbar/Toolbar';
-import { HandwritingInput } from './components/toolbar/HandwritingInput';
-import { TextInput } from './components/toolbar/TextInput';
-import { RectangleInput } from './components/toolbar/RectangleInput';
-import { StampInput } from './components/toolbar/StampInput';
+import { SettingsSidebar } from './components/layout/SettingsSidebar';
 import { useShortcuts } from './hooks/useShortcuts';
 import { exportToPdf, exportToImages } from './core/pdf/exporter';
 import { clsx } from 'clsx';
@@ -178,24 +175,10 @@ function App() {
         </div>
 
         {/* Right Sidebar (Tool Settings) */}
-        {pdfDocument && (activeTool === 'handwriting' || activeTool === 'text' || activeTool === 'rectangle' || activeTool === 'stamp') && (
-          <div className="w-80 bg-white border-l border-slate-200 flex flex-col z-10 shrink-0 h-full animate-in slide-in-from-right-10 duration-200 relative">
-            <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-sm font-semibold text-slate-900">
-                {activeTool === 'handwriting' && 'Signature Settings'}
-                {activeTool === 'text' && 'Text Settings'}
-                {activeTool === 'rectangle' && 'Cover Settings'}
-                {activeTool === 'stamp' && 'Choose Stamp'}
-              </h3>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <HandwritingInput />
-              <TextInput />
-              <RectangleInput />
-              <StampInput />
-            </div>
-          </div>
-        )}
+        <SettingsSidebar
+          activeTool={activeTool}
+          visible={!!pdfDocument && (activeTool === 'handwriting' || activeTool === 'text' || activeTool === 'rectangle' || activeTool === 'stamp')}
+        />
       </main>
     </div>
   );
