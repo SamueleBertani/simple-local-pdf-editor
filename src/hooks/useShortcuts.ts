@@ -118,9 +118,14 @@ export function useShortcuts() {
                 if (!activeObject) return;
 
                 if (isDelete) {
-                    canvas.remove(activeObject);
-                    // canvas.discardActiveObject(); // Kept commented out as remove usually clears, but check if needed
-                    canvas.requestRenderAll();
+                    const activeObjects = canvas.getActiveObjects();
+                    if (activeObjects.length) {
+                        activeObjects.forEach((obj: any) => {
+                            canvas.remove(obj);
+                        });
+                        canvas.discardActiveObject();
+                        canvas.requestRenderAll();
+                    }
                 }
 
                 if (e.key === 'ArrowLeft') {
