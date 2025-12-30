@@ -59,15 +59,26 @@ export function ScannerEffectModal({ isOpen, onClose, onDownload, previewCanvas,
                     </div>
 
                     <div className="space-y-4 flex-1 overflow-y-auto pr-2">
-                        {/* Grayscale Toggle */}
-                        <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium text-slate-700">Grayscale</label>
-                            <input
-                                type="checkbox"
-                                checked={options.grayscale}
-                                onChange={e => setOptions({ ...options, grayscale: e.target.checked })}
-                                className="toggle h-5 w-5"
-                            />
+                        {/* Toggles */}
+                        <div className="flex gap-4">
+                            <div className="flex-1 flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <label className="text-sm font-medium text-slate-700">Grayscale</label>
+                                <input
+                                    type="checkbox"
+                                    checked={options.grayscale}
+                                    onChange={e => setOptions({ ...options, grayscale: e.target.checked })}
+                                    className="h-5 w-5 accent-indigo-600"
+                                />
+                            </div>
+                            <div className="flex-1 flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                                <label className="text-sm font-medium text-slate-700">Scan Bed</label>
+                                <input
+                                    type="checkbox"
+                                    checked={options.border}
+                                    onChange={e => setOptions({ ...options, border: e.target.checked })}
+                                    className="h-5 w-5 accent-indigo-600"
+                                />
+                            </div>
                         </div>
 
                         {/* Noise Slider */}
@@ -91,9 +102,23 @@ export function ScannerEffectModal({ isOpen, onClose, onDownload, previewCanvas,
                                 <span className="text-xs text-slate-500">{options.tilt.toFixed(1)}°</span>
                             </div>
                             <input
-                                type="range" min="-2" max="2" step="0.1"
+                                type="range" min="-10" max="10" step="0.5"
                                 value={options.tilt}
                                 onChange={e => setOptions({ ...options, tilt: parseFloat(e.target.value) })}
+                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                            />
+                        </div>
+
+                        {/* Shadow Slider */}
+                        <div>
+                            <div className="flex justify-between mb-1">
+                                <label className="text-sm font-medium text-slate-700">Shadow</label>
+                                <span className="text-xs text-slate-500">{options.shadow}px</span>
+                            </div>
+                            <input
+                                type="range" min="0" max="20" step="1"
+                                value={options.shadow}
+                                onChange={e => setOptions({ ...options, shadow: parseFloat(e.target.value) })}
                                 className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                             />
                         </div>

@@ -1,11 +1,12 @@
 export interface ScannerOptions {
     noise: number; // 0-1
-    tilt: number; // degrees, e.g. -2 to 2
+    tilt: number; // degrees
     grayscale: boolean;
-    contrast: number; // 1 = normal, > 1 = high contrast
+    contrast: number; // 1 = normal
     brightness: number; // 1 = normal
     blur: number; // 0 = none
-    border: boolean;
+    shadow: number; // Shadow strength/offset
+    rotate: boolean; // Just for random variation?
 }
 
 export const DEFAULT_SCANNER_OPTIONS: ScannerOptions = {
@@ -15,34 +16,59 @@ export const DEFAULT_SCANNER_OPTIONS: ScannerOptions = {
     contrast: 1.2,
     brightness: 1.0,
     blur: 0.5,
-    border: false,
+    shadow: 0,
+    rotate: true,
 };
 
 export async function applyScannerEffect(
     sourceCanvas: HTMLCanvasElement,
     options: ScannerOptions
 ): Promise<HTMLCanvasElement> {
-    const { noise, tilt, grayscale, contrast, brightness, blur, border } = options;
+    const { noise, tilt, grayscale, contrast, brightness, blur, shadow } = options;
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return sourceCanvas;
 
-    // 1. Setup Canvas with Tilt Margin if needed
-    // Add some padding to avoid cutting off rotated corners
-    const padding = Math.abs(tilt) > 0 ? 20 : 0;
+    // 1. Setup Canvas with Padding for Rotate/Shadow
+    const padding = 50;
     canvas.width = sourceCanvas.width + padding * 2;
     canvas.height = sourceCanvas.height + padding * 2;
 
-    // Fill white background
+    // Fill white background (The "Scanner Lid" or just paper behind)
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Apply Tilt & Draw Image
+    // 2. Transform Context
     ctx.save();
     ctx.translate(canvas.width / 2, canvas.height / 2);
     ctx.rotate((tilt * Math.PI) / 180);
-    // Draw with slight blur if requested
+
+    // 3. Draw Shadow (Manually, so we can control it)
+    if (shadow > 0) {
+        ctx.save();
+        ctx.fillStyle = `rgba(0, 0, 0, 0.4)`; // Base shadow color
+        // Draw slightly offset rect
+        ctx.filter = `blur(${shadow * 2}px)`; // Blurriness increases with size
+        ctx.fillRect(
+            -sourceCanvas.width / 2 + shadow,
+            -sourceCanvas.height / 2 + shadow,
+            sourceCanvas.width,
+            sourceCanvas.height
+        );
+        ctx.restore();
+    }
+
+    // 4. Draw Paper Background (to cover the shadow behind it)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-sourceCanvas.width / 2, -sourceCanvas.height / 2, sourceCanvas.width, sourceCanvas.height);
+
+    // 5. Draw Paper Border (1px Outline)
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-sourceCanvas.width / 2, -sourceCanvas.height / 2, sourceCanvas.width, sourceCanvas.height);
+
+    // 6. Draw Content
     if (blur > 0) {
         ctx.filter = `blur(${blur}px)`;
     }
@@ -50,7 +76,7 @@ export async function applyScannerEffect(
     ctx.restore();
     ctx.filter = 'none';
 
-    // 3. Get Pixel Data for Pixel-level effects (Noise, Grayscale, Contrast)
+    // 7. Apply Pixel Effects (Noise, Grayscale, Contrast) to EVERYTHING
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
@@ -66,7 +92,6 @@ export async function applyScannerEffect(
         }
 
         // B. Contrast & Brightness
-        // Formula: factor * (color - 128) + 128
         if (contrast !== 1 || brightness !== 1) {
             r = brightness * (contrast * (r - 128) + 128);
             g = brightness * (contrast * (g - 128) + 128);
@@ -74,7 +99,6 @@ export async function applyScannerEffect(
         }
 
         // C. Noise
-        // Add random variation
         if (noise > 0) {
             const random = (0.5 - Math.random()) * (noise * 100);
             r += random;
@@ -82,19 +106,12 @@ export async function applyScannerEffect(
             b += random;
         }
 
-        // Clamp values
         data[i] = Math.min(255, Math.max(0, r));
         data[i + 1] = Math.min(255, Math.max(0, g));
         data[i + 2] = Math.min(255, Math.max(0, b));
     }
 
     ctx.putImageData(imageData, 0, 0);
-
-    // 4. Border / Shadow Effect (Optional)
-    if (border) {
-        // Implementation for shadow/border if needed
-        // For now, implicit via the white padding background
-    }
 
     return canvas;
 }

@@ -91,7 +91,15 @@ export async function exportToImages(
 
         // Apply Scanner Effect if options provided
         if (scannerOptions) {
-            canvas = await applyScannerEffect(canvas, scannerOptions);
+            // Randomize Tilt per page within the selected range (e.g., if 5 deg, random between -5 and 5)
+            // Noise is already random per-pixel in applyScannerEffect, so it's unique per page automatically.
+            const pageOptions = {
+                ...scannerOptions,
+                tilt: scannerOptions.tilt !== 0
+                    ? (Math.random() * 2 - 1) * Math.abs(scannerOptions.tilt)
+                    : 0
+            };
+            canvas = await applyScannerEffect(canvas, pageOptions);
         }
 
         // 3. Handle Output
