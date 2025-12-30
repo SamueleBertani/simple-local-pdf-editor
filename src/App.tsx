@@ -8,7 +8,8 @@ import { Button } from './components/ui/Button';
 import { Toolbar } from './components/toolbar/Toolbar';
 import { SettingsSidebar } from './components/layout/SettingsSidebar';
 import { useShortcuts } from './hooks/useShortcuts';
-import { exportToPdf, exportToImages } from './core/pdf/exporter';
+import { exportToPdf, exportToImages, renderPageToCanvas } from './core/pdf/exporter';
+import { ScannerEffectModal } from './components/modals/ScannerEffectModal';
 import { clsx } from 'clsx';
 import { useToolStore } from './store/useToolStore';
 import confetti from 'canvas-confetti';
@@ -70,16 +71,40 @@ function App() {
     });
   };
 
+  /* Scanner Effect Logic */
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scannerPreview, setScannerPreview] = useState<HTMLCanvasElement | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const startScannerFlow = async () => {
+    if (!pdfDocument) return;
+
+    // Render first page for preview
+    const preview = await renderPageToCanvas(pdfDocument, 1, canvases[1], 1.5); // Slightly lower scale for preview speed
+    setScannerPreview(preview);
+    setIsScannerOpen(true);
+  };
+
+  const handleScannerDownload = async (options: any) => {
+    if (!pdfDocument) return;
+    setIsProcessing(true);
+    try {
+      // Trigger confetti only on actual download
+      triggerConfetti();
+      await exportToImages(pdfDocument, canvases, options);
+      setIsScannerOpen(false);
+    } catch (e) {
+      console.error(e);
+      alert('Error creating scan');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleExportPDF = async () => {
     if (!pdfDocument) return;
     triggerConfetti();
     await exportToPdf(pdfDocument, canvases);
-  };
-
-  const handleExportZIP = async () => {
-    if (!pdfDocument) return;
-    triggerConfetti();
-    await exportToImages(pdfDocument, canvases);
   };
 
   return (
@@ -109,13 +134,13 @@ function App() {
               </button>
 
               <button
-                onClick={handleExportZIP}
+                onClick={startScannerFlow}
                 disabled={!pdfDocument}
                 className="flex items-center gap-3 text-slate-600 hover:text-indigo-600 transition-colors p-3 rounded-lg hover:bg-slate-50 w-full"
-                title="Save PNG (ZIP)"
+                title="Scanner Export (PNG)"
               >
                 <Download className="w-5 h-5" />
-                <span className="text-sm font-medium">Save PNG</span>
+                <span className="text-sm font-medium">Save PNG (Scan)</span>
               </button>
 
               <button
@@ -180,6 +205,15 @@ function App() {
           visible={!!pdfDocument && (activeTool === 'handwriting' || activeTool === 'text' || activeTool === 'rectangle' || activeTool === 'stamp')}
         />
       </main>
+
+      {/* Scanner Effect Modal */}
+      <ScannerEffectModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onDownload={handleScannerDownload}
+        previewCanvas={scannerPreview}
+        isProcessing={isProcessing}
+      />
     </div>
   );
 }

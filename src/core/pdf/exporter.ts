@@ -37,58 +37,78 @@ export async function exportToPdf(
     downloadFile(new Blob([pdfBytes as any], { type: 'application/pdf' }), 'edited_document.pdf');
 }
 
+import { applyScannerEffect } from '../image/scannerEffect';
+import type { ScannerOptions } from '../image/scannerEffect';
+
+export async function renderPageToCanvas(
+    pdfProxy: PDFDocumentProxy,
+    pageIndex: number, // 0-based index? No, getPage is 1-based, let's stick to 1-based for PDF page num
+    overlayCanvas?: any,
+    scale: number = 2
+): Promise<HTMLCanvasElement> {
+    const page = await pdfProxy.getPage(pageIndex);
+    const viewport = page.getViewport({ scale });
+
+    // 1. Render PDF Page
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const context = canvas.getContext('2d');
+
+    if (!context) throw new Error("Could not get canvas context");
+
+    // Cast to any to bypass strict typing issues with pdfjs-dist
+    await page.render({ canvasContext: context, viewport } as any).promise;
+
+    // 2. Render Overlay (Fabric items)
+    if (overlayCanvas) {
+        const overlayData = overlayCanvas.toDataURL({ format: 'png', multiplier: scale });
+        const img = new Image();
+        img.src = overlayData;
+        await new Promise(resolve => {
+            img.onload = () => {
+                context.drawImage(img, 0, 0, viewport.width, viewport.height);
+                resolve(null);
+            };
+            img.onerror = resolve; // Continue even if overlay fails
+        });
+    }
+
+    return canvas;
+}
+
 export async function exportToImages(
     pdfProxy: PDFDocumentProxy,
-    canvases: Record<number, any>
+    canvases: Record<number, any>,
+    scannerOptions?: ScannerOptions
 ) {
     const isSinglePage = pdfProxy.numPages === 1;
     const zip = new JSZip();
 
     for (let i = 1; i <= pdfProxy.numPages; i++) {
-        const page = await pdfProxy.getPage(i);
-        const viewport = page.getViewport({ scale: 2 }); // High res
+        // Render base page + overlay
+        let canvas = await renderPageToCanvas(pdfProxy, i, canvases[i], 2);
 
-        // 1. Render PDF Page
-        const canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const context = canvas.getContext('2d');
-
-        if (!context) continue; // Skip
-
-        // Cast context object to any to bypass RenderParameters mismatch
-        await page.render({ canvasContext: context, viewport } as any).promise;
-
-        // 2. Render Overlay
-        const overlayCanvas = canvases[i];
-        if (overlayCanvas) {
-            const overlayData = overlayCanvas.toDataURL({ format: 'png', multiplier: 2 });
-            const img = new Image();
-            img.src = overlayData;
-            await new Promise(resolve => {
-                img.onload = () => {
-                    // Draw overlay on top
-                    context.drawImage(img, 0, 0, viewport.width, viewport.height);
-                    resolve(null);
-                };
-            });
+        // Apply Scanner Effect if options provided
+        if (scannerOptions) {
+            canvas = await applyScannerEffect(canvas, scannerOptions);
         }
 
         // 3. Handle Output
         const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
         if (blob) {
             if (isSinglePage) {
-                downloadFile(blob, 'edited_page.png');
-                return; // Exit function, no zip needed
+                downloadFile(blob, scannerOptions ? 'scanned_page.png' : 'edited_page.png');
+                return; // Exit, no zip
             } else {
                 zip.file(`page_${i}.png`, blob);
             }
         }
     }
 
-    // Only generate zip if we haven't returned (i.e. multi-page)
+    // Generate zip
     const content = await zip.generateAsync({ type: 'blob' });
-    downloadFile(content, 'pages_export.zip');
+    downloadFile(content, scannerOptions ? 'scanned_export.zip' : 'pages_export.zip');
 }
 
 function downloadFile(blob: Blob, name: string) {
