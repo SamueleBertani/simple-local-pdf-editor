@@ -56,6 +56,9 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
         const handleMouseDown = (opt: any) => {
             const pointer = fabricCanvas.getPointer(opt.e);
 
+            // Allow selection of existing objects logic (sticky tools)
+            if (opt.target) return;
+
             // A. Rectangle: Start Drag
             if (activeTool === 'rectangle') {
                 isDragging.current = true;
@@ -90,7 +93,7 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                 fabricCanvas.setActiveObject(text);
                 text.enterEditing();
                 text.selectAll();
-                setActiveTool('select');
+                // Sticky tool: Do not reset to 'select'
             }
             // C. Image/Stamp/Handwriting (Click to Place)
             else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {

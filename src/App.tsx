@@ -9,12 +9,16 @@ import { Toolbar } from './components/toolbar/Toolbar';
 import { HandwritingInput } from './components/toolbar/HandwritingInput';
 import { TextInput } from './components/toolbar/TextInput';
 import { RectangleInput } from './components/toolbar/RectangleInput';
+import { StampInput } from './components/toolbar/StampInput';
 import { useShortcuts } from './hooks/useShortcuts';
 import { exportToPdf, exportToImages } from './core/pdf/exporter';
 import { clsx } from 'clsx';
+import { useToolStore } from './store/useToolStore';
+import confetti from 'canvas-confetti';
 
 function App() {
   const { setPdfDocument, pdfDocument, canvases } = usePDFStore();
+  const { activeTool } = useToolStore();
   const [isDragging, setIsDragging] = useState(false);
 
   useShortcuts();
@@ -60,13 +64,24 @@ function App() {
     await loadFile(file);
   };
 
+  /* Confetti Trigger */
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  };
+
   const handleExportPDF = async () => {
     if (!pdfDocument) return;
+    triggerConfetti();
     await exportToPdf(pdfDocument, canvases);
   };
 
   const handleExportZIP = async () => {
     if (!pdfDocument) return;
+    triggerConfetti();
     await exportToImages(pdfDocument, canvases);
   };
 
@@ -79,9 +94,6 @@ function App() {
           <div className="w-64 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
             {/* Tools */}
             <Toolbar />
-            <HandwritingInput />
-            <TextInput />
-            <RectangleInput />
 
             <div className="flex-1" /> {/* Spacer */}
 
@@ -164,6 +176,26 @@ function App() {
             <PDFViewer />
           )}
         </div>
+
+        {/* Right Sidebar (Tool Settings) */}
+        {pdfDocument && (activeTool === 'handwriting' || activeTool === 'text' || activeTool === 'rectangle' || activeTool === 'stamp') && (
+          <div className="w-80 bg-white border-l border-slate-200 flex flex-col z-10 shrink-0 h-full animate-in slide-in-from-right-10 duration-200 relative">
+            <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-sm font-semibold text-slate-900">
+                {activeTool === 'handwriting' && 'Signature Settings'}
+                {activeTool === 'text' && 'Text Settings'}
+                {activeTool === 'rectangle' && 'Cover Settings'}
+                {activeTool === 'stamp' && 'Choose Stamp'}
+              </h3>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <HandwritingInput />
+              <TextInput />
+              <RectangleInput />
+              <StampInput />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

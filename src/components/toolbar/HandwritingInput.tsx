@@ -37,13 +37,11 @@ export function HandwritingInput() {
     const colors = ['#000000', '#374151', '#6b7280', '#9ca3af', '#EF4444', '#3B82F6'];
 
     return (
-        <div className="absolute top-4 left-64 bg-white p-4 rounded-xl shadow-xl border border-slate-200 z-50 animate-in fade-in zoom-in-95 w-72">
-            <h3 className="text-sm font-semibold mb-3">Signature Generator</h3>
-
+        <div className="w-full flex flex-col gap-6">
             {/* Preview Section */}
-            <div className="relative min-h-[80px] flex items-center justify-center bg-slate-50 border border-slate-100 rounded-lg mb-4 p-2 overflow-hidden group">
+            <div className="relative min-h-[120px] flex items-center justify-center bg-slate-50 border border-slate-100 rounded-lg p-4 overflow-hidden group">
                 {pendingImage ? (
-                    <img src={pendingImage} alt="Signature Preview" className="max-h-20 max-w-full object-contain" />
+                    <img src={pendingImage} alt="Signature Preview" className="max-h-24 max-w-full object-contain" />
                 ) : (
                     <span className="text-xs text-slate-400 italic">Preview will appear here...</span>
                 )}
@@ -63,11 +61,11 @@ export function HandwritingInput() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Type your signature..."
-                className="w-full border border-slate-300 rounded-lg p-2 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full border border-slate-200 bg-slate-50 rounded-lg p-3 text-base focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
                 autoFocus
             />
 
-            <div className="space-y-4 mb-2">
+            <div className="space-y-6">
                 {/* Color Selection */}
                 <div>
                     <label className="text-xs font-medium text-slate-500 mb-1 block">Ink Color</label>
@@ -122,7 +120,7 @@ export function HandwritingInput() {
                 </div>
             </div>
 
-            <p className="text-[10px] text-slate-400 mt-2 text-center">
+            <p className="text-xs text-slate-400 text-center mt-4">
                 Click on canvas to place signature
             </p>
         </div>
