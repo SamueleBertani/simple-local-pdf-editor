@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { Image as FabricImage } from 'fabric';
 import { useFabric } from '../../hooks/useFabric';
 import { useToolStore } from '../../store/useToolStore';
-
 import { usePDFStore } from '../../store/usePDFStore';
+import { useCanvasHistory } from '../../hooks/useCanvasHistory';
 
 interface CanvasOverlayProps {
     width: number;
@@ -16,6 +16,8 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
     const { canvasRef, fabricCanvas } = useFabric({ width, height, scale });
     const { activeTool, pendingImage, setActiveTool, setPendingImage } = useToolStore();
     const { registerCanvas, unregisterCanvas } = usePDFStore();
+
+    useCanvasHistory(fabricCanvas, pageIndex);
 
     useEffect(() => {
         if (fabricCanvas) {

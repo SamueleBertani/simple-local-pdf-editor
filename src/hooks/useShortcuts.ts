@@ -1,15 +1,29 @@
 import { useEffect } from 'react';
 import { usePDFStore } from '../store/usePDFStore';
+import { useHistoryStore } from '../store/useHistoryStore';
 
 export function useShortcuts() {
     const { canvases } = usePDFStore();
+    const { undo, redo } = useHistoryStore();
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            // Iterate over all canvases
-            // If canvas has active object, apply shortcut
-            // Note: Only one object should be active across all canvases ideally, or we apply to any active.
+            // Undo: Cmd+Z or Ctrl+Z
+            if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undo();
+                return;
+            }
 
+            // Redo: Cmd+Shift+Z or Ctrl+Y
+            if (((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) ||
+                ((e.metaKey || e.ctrlKey) && e.key === 'y')) {
+                e.preventDefault();
+                redo();
+                return;
+            }
+
+            // ... exiting shortcut logic
             const isDelete = e.key === 'Delete' || e.key === 'Backspace';
             const isEscape = e.key === 'Escape';
             const step = e.shiftKey ? 10 : 1;
@@ -24,7 +38,7 @@ export function useShortcuts() {
 
                 if (isDelete) {
                     canvas.remove(activeObject);
-                    canvas.discardActiveObject();
+                    // canvas.discardActiveObject(); // Kept commented out as remove usually clears, but check if needed
                     canvas.requestRenderAll();
                 }
 
@@ -62,5 +76,5 @@ export function useShortcuts() {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [canvases]);
+    }, [canvases, undo, redo]);
 }
