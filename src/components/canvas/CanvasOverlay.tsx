@@ -4,6 +4,7 @@ import { useFabric } from '../../hooks/useFabric';
 import { useToolStore } from '../../store/useToolStore';
 import { usePDFStore } from '../../store/usePDFStore';
 import { useCanvasHistory } from '../../hooks/useCanvasHistory';
+import { useClipboardStore } from '../../store/useClipboardStore';
 
 interface CanvasOverlayProps {
     width: number;
@@ -16,15 +17,29 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
     const { canvasRef, fabricCanvas } = useFabric({ width, height, scale });
     const { activeTool, pendingImage, setActiveTool, setPendingImage } = useToolStore();
     const { registerCanvas, unregisterCanvas } = usePDFStore();
+    const { setLastActivePageIndex } = useClipboardStore();
 
     useCanvasHistory(fabricCanvas, pageIndex);
 
     useEffect(() => {
         if (fabricCanvas) {
             registerCanvas(pageIndex, fabricCanvas);
-            return () => unregisterCanvas(pageIndex);
+
+            // Track active page for paste operations
+            const handleInteraction = () => {
+                setLastActivePageIndex(pageIndex);
+            };
+
+            fabricCanvas.on('mouse:down', handleInteraction);
+            fabricCanvas.on('mouse:over', handleInteraction); // Optional: if just hovering implies intent
+
+            return () => {
+                unregisterCanvas(pageIndex);
+                fabricCanvas.off('mouse:down', handleInteraction);
+                fabricCanvas.off('mouse:over', handleInteraction);
+            };
         }
-    }, [fabricCanvas, pageIndex, registerCanvas, unregisterCanvas]);
+    }, [fabricCanvas, pageIndex, registerCanvas, unregisterCanvas, setLastActivePageIndex]);
 
     useEffect(() => {
         if (!fabricCanvas) return;

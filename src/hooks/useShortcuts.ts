@@ -1,13 +1,78 @@
 import { useEffect } from 'react';
+import * as fabric from 'fabric';
 import { usePDFStore } from '../store/usePDFStore';
 import { useHistoryStore } from '../store/useHistoryStore';
+import { useClipboardStore } from '../store/useClipboardStore';
 
 export function useShortcuts() {
     const { canvases } = usePDFStore();
     const { undo, redo } = useHistoryStore();
+    const { clipboard, setClipboard, lastActivePageIndex } = useClipboardStore();
 
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const handleKeyDown = async (e: KeyboardEvent) => {
+            // Guard against input fields
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
+            // Copy: Cmd+C or Ctrl+C
+            if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
+                e.preventDefault();
+
+                // Find the active object across all canvases
+                // We'll iterate and break on first found (assuming single selection mostly)
+                for (const canvas of Object.values(canvases)) {
+                    const activeObject = canvas.getActiveObject();
+                    if (activeObject) {
+                        const cloned = activeObject.toObject(['id', 'left', 'top', 'width', 'height', 'scaleX', 'scaleY', 'fill', 'stroke', 'text', 'angle', 'fontFamily', 'fontSize']);
+                        setClipboard(cloned);
+                        break;
+                    }
+                }
+                return;
+            }
+
+            // Paste: Cmd+V or Ctrl+V
+            if ((e.metaKey || e.ctrlKey) && e.key === 'v') {
+                e.preventDefault();
+
+                if (!clipboard) return;
+
+                // Determine target canvas
+                let targetPageIndex = lastActivePageIndex;
+
+                // Fallback: use first available if none active
+                if (typeof targetPageIndex !== 'number' || !canvases[targetPageIndex]) {
+                    const keys = Object.keys(canvases).map(Number);
+                    if (keys.length > 0) targetPageIndex = keys[0];
+                }
+
+                if (typeof targetPageIndex === 'number' && canvases[targetPageIndex]) {
+                    const canvas = canvases[targetPageIndex];
+
+                    const objects = await fabric.util.enlivenObjects([clipboard], {});
+                    objects.forEach((obj: any) => {
+                        // Clone logic: offset slightly
+                        obj.set({
+                            left: obj.left + 20,
+                            top: obj.top + 20,
+                            evented: true,
+                        });
+
+                        // Generate new ID if we are using IDs
+                        if (obj.id || clipboard.id) {
+                            obj.set('id', Math.random().toString(36).substr(2, 9));
+                        }
+
+                        canvas.add(obj);
+                        canvas.setActiveObject(obj);
+                        canvas.requestRenderAll();
+                    });
+                }
+                return;
+            }
+
             // Undo: Cmd+Z or Ctrl+Z
             if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
                 e.preventDefault();
@@ -76,5 +141,5 @@ export function useShortcuts() {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [canvases, undo, redo]);
+    }, [canvases, undo, redo, clipboard, setClipboard, lastActivePageIndex]);
 }
