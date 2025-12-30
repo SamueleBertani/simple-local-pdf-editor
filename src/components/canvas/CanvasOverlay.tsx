@@ -60,9 +60,9 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                     fabricCanvas.add(img);
                     fabricCanvas.setActiveObject(img);
 
-                    // Reset state
-                    setActiveTool('select');
-                    setPendingImage(null);
+                    // Keep state active for multiple placements
+                    // setActiveTool('select');
+                    // setPendingImage(null);
                 }).catch((err) => {
                     // Fallback for v5 callback style if promise fails (Runtime check not easy here, but usually v6 is Promise)
                     // If v5, fromURL returns ref, ignores promise.

@@ -3,11 +3,13 @@ import * as fabric from 'fabric';
 import { usePDFStore } from '../store/usePDFStore';
 import { useHistoryStore } from '../store/useHistoryStore';
 import { useClipboardStore } from '../store/useClipboardStore';
+import { useToolStore } from '../store/useToolStore';
 
 export function useShortcuts() {
     const { canvases } = usePDFStore();
     const { undo, redo } = useHistoryStore();
     const { clipboard, setClipboard, lastActivePageIndex } = useClipboardStore();
+    const { setActiveTool, setPendingImage } = useToolStore();
 
     useEffect(() => {
         const handleKeyDown = async (e: KeyboardEvent) => {
@@ -93,22 +95,31 @@ export function useShortcuts() {
             const isEscape = e.key === 'Escape';
             const step = e.shiftKey ? 10 : 1;
 
+            if (isEscape) {
+                // Reset tool state
+                setActiveTool('select');
+                setPendingImage(null);
+            }
+
             if (Object.keys(canvases).length === 0) return;
 
             Object.values(canvases).forEach((canvas) => {
                 if (!canvas) return; // Guard
 
                 const activeObject = canvas.getActiveObject();
+                // Only modify canvas if there is an active object,
+                // BUT Escape should work even without active object to reset tool (addressed above)
+
+                if (isEscape) {
+                    canvas.discardActiveObject();
+                    canvas.requestRenderAll();
+                }
+
                 if (!activeObject) return;
 
                 if (isDelete) {
                     canvas.remove(activeObject);
                     // canvas.discardActiveObject(); // Kept commented out as remove usually clears, but check if needed
-                    canvas.requestRenderAll();
-                }
-
-                if (isEscape) {
-                    canvas.discardActiveObject();
                     canvas.requestRenderAll();
                 }
 
@@ -141,5 +152,5 @@ export function useShortcuts() {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [canvases, undo, redo, clipboard, setClipboard, lastActivePageIndex]);
+    }, [canvases, undo, redo, clipboard, setClipboard, lastActivePageIndex, setActiveTool, setPendingImage]);
 }
