@@ -26,7 +26,10 @@ function App() {
     }
 
     const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = PDFJS.getDocument(arrayBuffer);
+    const loadingTask = PDFJS.getDocument({
+      data: arrayBuffer,
+      verbosity: PDFJS.VerbosityLevel.ERRORS,
+    });
     const doc = await loadingTask.promise;
 
     setPdfDocument(doc);

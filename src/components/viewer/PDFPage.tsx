@@ -36,6 +36,13 @@ export function PDFPage({ page, scale }: PDFPageProps) {
         // Cast renderContext to any to avoid strict type mismatch with older @types/pdfjs-dist vs new lib
         const renderTask = page.render(renderContext as any);
 
+        renderTask.promise.catch((error) => {
+            // RenderingCancelledException is expected on re-renders
+            if (error.name !== 'RenderingCancelledException') {
+                console.error('Render error:', error);
+            }
+        });
+
         return () => {
             renderTask.cancel();
         };
