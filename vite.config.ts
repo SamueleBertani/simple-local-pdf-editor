@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.png'],
       manifest: {
-        name: 'LocalPDF Editor',
+        name: 'Local PDF Editor',
         short_name: 'LocalPDF',
         description: 'Private, secure, offline-capable PDF editor',
         theme_color: '#ffffff',
