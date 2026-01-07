@@ -13,6 +13,8 @@ interface UseGhostObjectProps {
 export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pendingImage }: UseGhostObjectProps) {
     const ghostObj = useRef<any>(null);
     const isInteracting = useRef(false);
+    const isMouseOver = useRef(false);
+    const lastPointer = useRef<{ x: number, y: number } | null>(null);
 
     useEffect(() => {
         if (!fabricCanvas) return;
@@ -25,7 +27,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                 ghostObj.current = null;
             }
 
-            // Don't show ghost if interacting (editing text or moving objects)
+            // Don't create ghost if interacting (editing text or moving objects)
             if (isInteracting.current) return;
 
             if (activeTool === 'text') {
@@ -41,6 +43,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                     data: { isGhost: true }
                 });
                 ghostObj.current = text;
+                checkAndAddGhost();
             } else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
                 FabricImage.fromURL(pendingImage).then((img) => {
                     // Guard: verify tool didn't change while loading
@@ -62,8 +65,22 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                         data: { isGhost: true }
                     });
                     ghostObj.current = img;
-                    fabricCanvas.requestRenderAll();
+                    checkAndAddGhost();
                 });
+            }
+        };
+
+        // Helper: Check if ghost should be added and add it
+        const checkAndAddGhost = () => {
+            if (ghostObj.current && isMouseOver.current && !isInteracting.current && lastPointer.current) {
+                // Update position
+                ghostObj.current.set({ left: lastPointer.current.x, top: lastPointer.current.y });
+
+                if (!fabricCanvas.contains(ghostObj.current)) {
+                    fabricCanvas.add(ghostObj.current);
+                }
+                fabricCanvas.bringObjectToFront(ghostObj.current);
+                fabricCanvas.requestRenderAll();
             }
         };
 
@@ -72,28 +89,46 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
 
         const handleMouseMove = (opt: any) => {
             const pointer = fabricCanvas.getPointer(opt.e);
+            lastPointer.current = { x: pointer.x, y: pointer.y };
+
+            // Ensure mouseover state is true on move (just in case)
+            if (!isMouseOver.current) {
+                isMouseOver.current = true;
+            }
+
+            if (isInteracting.current) return;
 
             // Move Ghost
-            if (ghostObj.current && !isInteracting.current) {
+            if (ghostObj.current) {
                 ghostObj.current.set({ left: pointer.x, top: pointer.y });
-                // If not added to canvas yet, add it
+
                 if (!fabricCanvas.contains(ghostObj.current)) {
                     fabricCanvas.add(ghostObj.current);
+                    fabricCanvas.bringObjectToFront(ghostObj.current);
+                } else {
+                    fabricCanvas.bringObjectToFront(ghostObj.current);
                 }
-                // Fix: ensure ghost is on top using canvas method
-                fabricCanvas.bringObjectToFront(ghostObj.current);
+
                 fabricCanvas.requestRenderAll();
-            } else if (ghostObj.current && isInteracting.current) {
-                // If interacting, ensure ghost is hidden
-                fabricCanvas.remove(ghostObj.current);
-                ghostObj.current = null;
             }
         };
 
-        const handleMouseOut = () => {
+        const handleMouseOver = (opt: any) => {
+            isMouseOver.current = true;
+            if (opt.e) {
+                const pointer = fabricCanvas.getPointer(opt.e);
+                lastPointer.current = { x: pointer.x, y: pointer.y };
+            }
+            checkAndAddGhost();
+        };
+
+        const handleMouseOut = (opt: any) => {
+            // Only consider mouse out if leaving the canvas (opt.target is null)
+            if (opt.target) return;
+
+            isMouseOver.current = false;
             if (ghostObj.current) {
                 fabricCanvas.remove(ghostObj.current);
-                ghostObj.current = null;
                 fabricCanvas.requestRenderAll();
             }
         };
@@ -103,7 +138,6 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             isInteracting.current = true;
             if (ghostObj.current) {
                 fabricCanvas.remove(ghostObj.current);
-                ghostObj.current = null;
                 fabricCanvas.requestRenderAll();
             }
         };
@@ -119,25 +153,12 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                 isInteracting.current = true;
                 if (ghostObj.current) {
                     fabricCanvas.remove(ghostObj.current);
-                    ghostObj.current = null;
                     fabricCanvas.requestRenderAll();
                 }
             }
         };
 
         const handleMouseUp = () => {
-            // Only reset if we were interacting via mouse (not text edit)
-            // But wait, text editing enters a specific mode. 
-            // We should check if we are in text editing mode?
-            // fabricCanvas.getActiveObject() might be IText in editing mode.
-            // But 'text:editing:entered' handles the text editing state specifically.
-            // MouseUp should clear the "drag/transform" interaction.
-
-            // If we are editing text, don't reset isInteracting based on mouse up
-            // because the user might just clicked inside the text box.
-            // fabricCanvas.isDrawingMode is another thing.
-
-            // Let's rely on checking if active object is in editing mode?
             const activeObj = fabricCanvas.getActiveObject() as any;
             if (activeObj && activeObj.isEditing) {
                 return;
@@ -145,90 +166,40 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
 
             if (isInteracting.current) {
                 isInteracting.current = false;
-                // We might want to restore the ghost immediately or wait for move
-                // updateGhost() calls requestRenderAll inside promise for images, 
-                // so it might be safe.
-                // However, without mouse move, we don't know where to put it yet if we cleared it.
-                // But updateGhost just prepares it. `handleMouseMove` positions it.
-                // Actually handleMouseMove expects ghostObj.current to be there or not?
-                // logic in handleMouseMove: if ghostObj.current ...
+                updateGhost();
+            }
+        };
 
-                // If we call updateGhost(), it creates the ghost at (0,0)? 
-                // No, Text is created at 'Type here' default? 
-                // The Image load is async.
+        const handleGlobalMouseUp = () => {
+            const activeObj = fabricCanvas.getActiveObject() as any;
+            if (activeObj && activeObj.isEditing) return;
 
-                // Better approach: Let handleMouseMove recreate/show ghost?
-                // But handleMouseMove assumes ghostObj exists to move it.
-
-                // Let's call updateGhost() which creates it. 
-                // Then next mouseMove will position it.
-                // It might briefly flash at 0,0 or wherever default is.
-                // Text default: (0,0) implied? IText constructor: left: pointer.x?
-                // Wait, updateGhost() in my code above uses `toolSettings` but doesn't have `pointer` position!
-                // The original code used `pointer` from `opt` in `handleMouseDown` in Overlay.
-                // But `useGhostObject` creates it.
-
-                // Re-reading `updateGhost` in `useGhostObject`:
-                // It creates Text with `originX: 'left', originY: 'top'`... but doesn't set `left` or `top`!
-                // So it defaults to 0,0.
-                // And `handleMouseMove` sets position.
-
-                // If I call `updateGhost()` here, it will appear at 0,0 until mouse moves.
-                // Maybe I should only set `isInteracting = false` and let `handleMouseMove` create it?
-                // But `handleMouseMove` currently only moves it if it exists.
-
-                // Let's change `handleMouseMove` to CREATE it if missing and not interacting?
-                // Or just keep `updateGhost` doing the creation, but set visible=false until moved?
-                // Or `opacity: 0`?
-
-                // Actually my `updateGhost` function creates it with opacity 0.5.
-
-                // If I just set `isInteracting = false`, the next `mouse:move` will trigger.
-                // But `handleMouseMove` logic:
-                // `if (ghostObj.current && !isInteracting.current)` -> moves it.
-                // It doesn't create it.
-
-                // So I need to call `updateGhost()`.
-                // To avoid flash at 0,0, maybe `updateGhost` should accept position?
-                // Or just rely on it being fast?
-                // Or make `updateGhost` create it but not add to canvas?
-                // `handleMouseMove` adds it.
-
-                // In my logic: `updateGhost` creates `ghostObj.current`.
-                // It does NOT add it to canvas (except `FabricImage` promise *does* NOT add it, wait).
-                // `FabricImage.fromURL` ... `ghostObj.current = img`.
-                // It does `fabricCanvas.requestRenderAll()`.
-                // But it does NOT call `fabricCanvas.add(img)`.
-
-                // `handleMouseMove`:
-                // `if (!fabricCanvas.contains(ghostObj.current)) { fabricCanvas.add(ghostObj.current); }`
-
-                // So `updateGhost` prepares the object but doesn't show it.
-                // `handleMouseMove` positions it AND adds it.
-                // THIS IS PERFECT.
-                // So calling `updateGhost()` simply informs "we have a ghost ready".
-                // Next mouse move will position and show it.
-
+            if (isInteracting.current) {
+                isInteracting.current = false;
                 updateGhost();
             }
         };
 
         fabricCanvas.on('mouse:move', handleMouseMove);
+        fabricCanvas.on('mouse:over', handleMouseOver);
         fabricCanvas.on('mouse:out', handleMouseOut);
         fabricCanvas.on('text:editing:entered', handleTextEditStart);
         fabricCanvas.on('text:editing:exited', handleTextEditEnd);
         fabricCanvas.on('mouse:down', handleMouseDown);
         fabricCanvas.on('mouse:up', handleMouseUp);
+        window.addEventListener('mouseup', handleGlobalMouseUp);
 
         return () => {
             if (ghostObj.current && fabricCanvas) fabricCanvas.remove(ghostObj.current);
             ghostObj.current = null;
             fabricCanvas.off('mouse:move', handleMouseMove);
+            fabricCanvas.off('mouse:over', handleMouseOver);
             fabricCanvas.off('mouse:out', handleMouseOut);
             fabricCanvas.off('text:editing:entered', handleTextEditStart);
             fabricCanvas.off('text:editing:exited', handleTextEditEnd);
             fabricCanvas.off('mouse:down', handleMouseDown);
             fabricCanvas.off('mouse:up', handleMouseUp);
+            window.removeEventListener('mouseup', handleGlobalMouseUp);
         };
     }, [fabricCanvas, activeTool, toolSettings, pendingImage]);
 }

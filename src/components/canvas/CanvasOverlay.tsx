@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FabricImage, Rect, IText } from 'fabric';
 import { useFabric } from '../../hooks/useFabric';
 import { useToolStore } from '../../store/useToolStore';
@@ -19,6 +19,8 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
     const { activeTool, pendingImage, setActiveTool, toolSettings } = useToolStore();
     const { registerCanvas, unregisterCanvas } = usePDFStore();
     const { setLastActivePageIndex } = useClipboardStore();
+
+    const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
 
     // Refs for drag state
     const isDragging = useRef(false);
@@ -61,7 +63,11 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
             const pointer = fabricCanvas.getPointer(opt.e);
 
             // Allow selection of existing objects (ignore if clicking ghost)
-            if (opt.target && !opt.target.data?.isGhost) return;
+            if (opt.target && !opt.target.data?.isGhost) {
+                // We are possibly starting a drag of an object
+                setIsDraggingCanvas(true);
+                return;
+            }
 
             if (activeTool === 'rectangle') {
                 isDragging.current = true;
@@ -75,6 +81,7 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                 });
                 activeShape.current = rect;
                 fabricCanvas.add(rect);
+                setIsDraggingCanvas(true);
             } else if (activeTool === 'text') {
                 const text = new IText('Type here', {
                     left: pointer.x, top: pointer.y,
@@ -125,6 +132,8 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
         };
 
         const handleMouseUp = (opt: any) => {
+            setIsDraggingCanvas(false);
+
             if (isDragging.current) {
                 isDragging.current = false;
                 if (activeShape.current) {
@@ -217,7 +226,10 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
     }, [fabricCanvas, activeTool, toolSettings, pendingImage, setActiveTool]);
 
     return (
-        <div className="absolute inset-0 z-10 pointer-events-auto">
+        <div
+            className="absolute inset-0 pointer-events-auto"
+            style={{ zIndex: isDraggingCanvas ? 50 : 10 }}
+        >
             <canvas ref={canvasRef} />
         </div>
     );
