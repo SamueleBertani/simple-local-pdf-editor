@@ -47,7 +47,7 @@ export function PDFViewer() {
     }
 
     return (
-        <div className="flex-1 overflow-auto bg-slate-100 p-8 flex flex-col items-center">
+        <div className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-950/50 p-8 flex flex-col items-center">
             {pages.map((page, index) => (
                 <PDFPage key={index} page={page} scale={scale} />
             ))}

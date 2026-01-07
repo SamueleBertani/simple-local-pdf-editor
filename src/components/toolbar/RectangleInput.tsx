@@ -9,7 +9,7 @@ export function RectangleInput() {
         <div className="w-full flex flex-col gap-6">
             <div className="space-y-6">
                 <div>
-                    <label className="text-sm font-medium text-slate-700 mb-2 block">Fill Color</label>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Fill Color</label>
                     <div className="flex gap-3">
                         {['#FFFFFF', '#000000', '#F3F4F6'].map((c) => (
                             <button
@@ -17,7 +17,7 @@ export function RectangleInput() {
                                 onClick={() => setToolSettings({ color: c })}
                                 className={`w-10 h-10 rounded-md border-2 transition-all shadow-sm ${toolSettings.color === c
                                     ? 'border-indigo-600 scale-110 ring-2 ring-indigo-100'
-                                    : 'border-slate-200 opacity-80 hover:scale-105'
+                                    : 'border-slate-200 dark:border-slate-700 opacity-80 hover:scale-105'
                                     }`}
                                 style={{ backgroundColor: c }}
                                 title={c === '#FFFFFF' ? 'White' : c === '#000000' ? 'Black' : 'Gray'}

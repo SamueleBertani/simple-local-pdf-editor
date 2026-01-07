@@ -23,8 +23,8 @@ export function Toolbar() {
             className={clsx(
                 "flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-left",
                 activeTool === tool
-                    ? "bg-indigo-50 text-indigo-700 font-medium shadow-sm ring-1 ring-indigo-200"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
+                    ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium shadow-sm ring-1 ring-indigo-200 dark:ring-indigo-800"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400"
             )}
         >
             <Icon className={clsx("w-5 h-5", activeTool === tool && "fill-indigo-100")} />

@@ -1,6 +1,6 @@
 import type { ChangeEvent, DragEvent } from 'react';
 import { useState } from 'react';
-import { Upload, Download } from 'lucide-react';
+import { Upload, Download, Moon, Sun } from 'lucide-react';
 import { PDFJS } from './core/pdf/pdfWorker';
 import { usePDFStore } from './store/usePDFStore';
 import { PDFViewer } from './components/viewer/PDFViewer';
@@ -13,12 +13,13 @@ import { ScannerEffectModal } from './components/modals/ScannerEffectModal';
 import { clsx } from 'clsx';
 import { useToolStore } from './store/useToolStore';
 import confetti from 'canvas-confetti';
+import { useTheme } from './hooks/useTheme';
 
 function App() {
   const { setPdfDocument, pdfDocument, canvases } = usePDFStore();
   const { activeTool } = useToolStore();
   const [isDragging, setIsDragging] = useState(false);
-
+  const { theme, toggleTheme } = useTheme();
   useShortcuts();
 
   const loadFile = async (file: File) => {
@@ -108,25 +109,25 @@ function App() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-slate-50 overflow-hidden text-slate-900 font-sans">
+    <div className="h-screen w-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden text-slate-900 dark:text-slate-100 font-sans">
       {/* Main Content */}
       <main className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
         {pdfDocument && (
-          <div className="w-64 bg-white border-r border-slate-200 flex flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
+          <div className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
             {/* Tools */}
             <Toolbar />
 
             <div className="flex-1" /> {/* Spacer */}
 
-            <div className="w-full h-px bg-slate-200" />
+            <div className="w-full h-px bg-slate-200 dark:bg-slate-800" />
 
             {/* Actions */}
             <div className="flex flex-col gap-3 w-full px-4">
               <button
                 onClick={handleExportPDF}
                 disabled={!pdfDocument}
-                className="flex items-center gap-3 text-slate-600 hover:text-indigo-600 transition-colors p-3 rounded-lg hover:bg-slate-50 w-full"
+                className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
                 title="Save PDF"
               >
                 <Download className="w-5 h-5" />
@@ -136,7 +137,7 @@ function App() {
               <button
                 onClick={startScannerFlow}
                 disabled={!pdfDocument}
-                className="flex items-center gap-3 text-slate-600 hover:text-indigo-600 transition-colors p-3 rounded-lg hover:bg-slate-50 w-full"
+                className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
                 title="Scanner Export (PNG)"
               >
                 <Download className="w-5 h-5" />
@@ -144,8 +145,17 @@ function App() {
               </button>
 
               <button
+                onClick={toggleTheme}
+                className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
+                title="Toggle Theme"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                <span className="text-sm font-medium">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
+
+              <button
                 onClick={() => window.location.reload()}
-                className="flex items-center gap-3 text-red-500 hover:text-red-600 transition-colors p-3 rounded-lg hover:bg-red-50 mt-2 w-full"
+                className="flex items-center gap-3 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors p-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 mt-2 w-full"
                 title="Close File"
               >
                 <span className="text-xl font-bold leading-none w-5 text-center">&times;</span>
@@ -156,30 +166,30 @@ function App() {
         )}
 
         {/* Viewer */}
-        <div className="flex-1 flex flex-col relative bg-slate-100">
+        <div className="flex-1 flex flex-col relative bg-slate-100 dark:bg-slate-950/50">
           {!pdfDocument ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+            <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
               <div className="flex flex-col items-center gap-4 mb-8">
                 {/* Icon removed as requested */}
-                <h1 className="text-4xl font-extrabold text-slate-800 tracking-tight">PDF Editor</h1>
+                <h1 className="text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">PDF Editor</h1>
               </div>
 
               <div
                 className={clsx(
-                  "bg-white p-8 rounded-2xl shadow-sm border-2 flex flex-col items-center max-w-md w-full mx-4 transition-all duration-200",
+                  "bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border-2 flex flex-col items-center max-w-md w-full mx-4 transition-all duration-200",
                   isDragging
-                    ? "border-indigo-500 bg-indigo-50 scale-105"
-                    : "border-slate-200 border-dashed"
+                    ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 scale-105"
+                    : "border-slate-200 dark:border-slate-800 border-dashed"
                 )}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
               >
-                <Upload className={clsx("w-12 h-12 mb-4 transition-colors", isDragging ? "text-indigo-600" : "text-slate-300")} />
-                <p className={clsx("text-lg font-medium text-center mb-1 transition-colors", isDragging ? "text-indigo-700" : "text-slate-600")}>
+                <Upload className={clsx("w-12 h-12 mb-4 transition-colors", isDragging ? "text-indigo-600 dark:text-indigo-400" : "text-slate-300 dark:text-slate-600")} />
+                <p className={clsx("text-lg font-medium text-center mb-1 transition-colors", isDragging ? "text-indigo-700 dark:text-indigo-300" : "text-slate-600 dark:text-slate-300")}>
                   {isDragging ? "Drop PDF here" : "Upload a PDF to start editing"}
                 </p>
-                <p className={clsx("text-sm text-center mb-6 transition-colors", isDragging ? "text-indigo-500" : "text-slate-400")}>
+                <p className={clsx("text-sm text-center mb-6 transition-colors", isDragging ? "text-indigo-500 dark:text-indigo-400" : "text-slate-400 dark:text-slate-500")}>
                   {isDragging ? "Release to open" : "Drag & Drop or click to select"}
                 </p>
 

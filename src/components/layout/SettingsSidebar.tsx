@@ -13,9 +13,9 @@ export function SettingsSidebar({ activeTool, visible }: SettingsSidebarProps) {
     if (!visible) return null;
 
     return (
-        <div className="w-80 bg-white border-l border-slate-200 flex flex-col z-10 shrink-0 h-full animate-in slide-in-from-right-full duration-300 ease-in-out relative">
-            <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-                <h3 className="text-sm font-semibold text-slate-900">
+        <div className="w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col z-10 shrink-0 h-full animate-in slide-in-from-right-full duration-300 ease-in-out relative">
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {activeTool === 'handwriting' && 'Signature Settings'}
                     {activeTool === 'text' && 'Text Settings'}
                     {activeTool === 'rectangle' && 'Cover Settings'}

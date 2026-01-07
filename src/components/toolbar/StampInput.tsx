@@ -16,18 +16,18 @@ export function StampInput() {
                         key={stamp.id}
                         onClick={() => setPendingImage(stamp.url)}
                         className={`group relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${pendingImage === stamp.url
-                                ? 'border-indigo-600 bg-indigo-50 shadow-sm'
-                                : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
+                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800'
                             }`}
                     >
-                        <div className="w-full aspect-square flex items-center justify-center bg-white rounded-lg p-2 border border-slate-100">
+                        <div className="w-full aspect-square flex items-center justify-center bg-white dark:bg-slate-800 rounded-lg p-2 border border-slate-100 dark:border-slate-700">
                             <img
                                 src={stamp.url}
                                 alt={stamp.label}
                                 className="max-w-full max-h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity"
                             />
                         </div>
-                        <span className={`text-xs font-medium text-center ${pendingImage === stamp.url ? 'text-indigo-700' : 'text-slate-600'
+                        <span className={`text-xs font-medium text-center ${pendingImage === stamp.url ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-600 dark:text-slate-400'
                             }`}>
                             {stamp.label}
                         </span>
