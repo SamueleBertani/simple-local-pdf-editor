@@ -124,7 +124,7 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
             }
         };
 
-        const handleMouseUp = () => {
+        const handleMouseUp = (opt: any) => {
             if (isDragging.current) {
                 isDragging.current = false;
                 if (activeShape.current) {
@@ -133,7 +133,61 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                     fabricCanvas.setActiveObject(activeShape.current);
                     activeShape.current = null;
                 }
+                return;
             }
+
+            // Check for Object Drop on another Page
+            const activeObj = fabricCanvas.getActiveObject();
+            if (activeObj && opt.e) {
+                const allCanvases = usePDFStore.getState().canvases;
+
+                Object.entries(allCanvases).forEach(([pIndex, targetCanvas]: [string, any]) => {
+                    const targetPageIndex = parseInt(pIndex);
+                    if (targetPageIndex === pageIndex) return;
+
+                    const targetCanvasEl = targetCanvas.getElement();
+                    const rect = targetCanvasEl.getBoundingClientRect();
+                    const clientX = opt.e.clientX;
+                    const clientY = opt.e.clientY;
+
+                    if (
+                        clientX >= rect.left &&
+                        clientX <= rect.right &&
+                        clientY >= rect.top &&
+                        clientY <= rect.bottom
+                    ) {
+                        // MATCH! Transfer object.
+                        activeObj.clone().then((cloned: any) => {
+                            const pointer = targetCanvas.getPointer(opt.e);
+
+                            cloned.set({
+                                left: pointer.x,
+                                top: pointer.y,
+                                originX: activeObj.originX,
+                                originY: activeObj.originY
+                            });
+
+                            if (cloned.id) {
+                                cloned.set('id', Math.random().toString(36).substr(2, 9));
+                            }
+
+                            targetCanvas.add(cloned);
+                            targetCanvas.setActiveObject(cloned);
+                            targetCanvas.requestRenderAll();
+
+                            fabricCanvas.remove(activeObj);
+                            fabricCanvas.discardActiveObject();
+                            fabricCanvas.requestRenderAll();
+                        });
+                    }
+                });
+            }
+
+            const activeObjOld = fabricCanvas.getActiveObject() as any;
+            if (activeObjOld && activeObjOld.isEditing) {
+                return;
+            }
+
         };
 
         const handleObjectModified = (e: any) => {
