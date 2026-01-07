@@ -1,5 +1,5 @@
 import type { ChangeEvent, DragEvent } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, Download, Moon, Sun } from 'lucide-react';
 import { PDFJS } from './core/pdf/pdfWorker';
 import { usePDFStore } from './store/usePDFStore';
@@ -14,13 +14,37 @@ import { clsx } from 'clsx';
 import { useToolStore } from './store/useToolStore';
 import confetti from 'canvas-confetti';
 import { useTheme } from './hooks/useTheme';
+import { ZoomControls } from './components/toolbar/ZoomControls';
 
 function App() {
-  const { setPdfDocument, pdfDocument, canvases } = usePDFStore();
+  const { setPdfDocument, pdfDocument, canvases, scale, setScale } = usePDFStore();
   const { activeTool } = useToolStore();
   const [isDragging, setIsDragging] = useState(false);
   const { theme, toggleTheme } = useTheme();
   useShortcuts();
+
+  // Gesture Support: Ctrl + Wheel for zooming
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      // Check for Ctrl key (standard for pinch-to-zoom on trackpads too)
+      if (e.ctrlKey) {
+        e.preventDefault(); // Persist browser zoom
+
+        // Calculate new scale
+        const delta = -e.deltaY * 0.01; // Sensitivity
+        const newScale = Math.min(3, Math.max(0.5, scale + delta));
+
+        setScale(newScale);
+      }
+    };
+
+    // Add listener to window or specific container
+    window.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, [scale, setScale]);
 
   const loadFile = async (file: File) => {
     if (file.type !== 'application/pdf') {
@@ -166,7 +190,7 @@ function App() {
         )}
 
         {/* Viewer */}
-        <div className="flex-1 flex flex-col relative bg-slate-100 dark:bg-slate-950/50">
+        <div className="flex-1 flex flex-col relative bg-slate-100 dark:bg-slate-950/50 min-w-0">
           {!pdfDocument ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
               <div className="flex flex-col items-center gap-4 mb-8">
@@ -205,7 +229,10 @@ function App() {
               </div>
             </div>
           ) : (
-            <PDFViewer />
+            <>
+              <PDFViewer />
+              <ZoomControls />
+            </>
           )}
         </div>
 
