@@ -79,6 +79,8 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                 if (!fabricCanvas.contains(ghostObj.current)) {
                     fabricCanvas.add(ghostObj.current);
                 }
+
+                // Only bring to front once when adding/showing
                 fabricCanvas.bringObjectToFront(ghostObj.current);
                 fabricCanvas.requestRenderAll();
             }
@@ -91,7 +93,6 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             const pointer = fabricCanvas.getPointer(opt.e);
             lastPointer.current = { x: pointer.x, y: pointer.y };
 
-            // Ensure mouseover state is true on move (just in case)
             if (!isMouseOver.current) {
                 isMouseOver.current = true;
             }
@@ -105,27 +106,35 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                 if (!fabricCanvas.contains(ghostObj.current)) {
                     fabricCanvas.add(ghostObj.current);
                     fabricCanvas.bringObjectToFront(ghostObj.current);
-                } else {
-                    fabricCanvas.bringObjectToFront(ghostObj.current);
                 }
+                // PERFORMANCE FIX: Removed continuous bringObjectToFront here to prevent stutter
 
                 fabricCanvas.requestRenderAll();
             }
         };
 
-        const handleMouseOver = (opt: any) => {
+        const handleNativeMouseEnter = (e: MouseEvent) => {
             isMouseOver.current = true;
-            if (opt.e) {
-                const pointer = fabricCanvas.getPointer(opt.e);
-                lastPointer.current = { x: pointer.x, y: pointer.y };
-            }
+
+            // Calculate pointer relative to canvas element
+            // This corresponds to fabric's logic somewhat, but getPointer usually takes event.
+            // We can just rely on the next mousemove to set lastPointer precise,
+            // or try to set it here.
+
+            // Simple: just mark mouseOver, let checkAndAddGhost add it (might use old lastPointer or wait for move)
+            // If we want instant appearance at entry point:
+            // We need to simulate the pointer calculation.
+            // But fabric's getPointer needs the event.
+            // We can pass 'e' to it?
+            // fabricCanvas.getPointer(e) works with native events too.
+            const pointer = fabricCanvas.getPointer(e);
+            lastPointer.current = { x: pointer.x, y: pointer.y };
+
             checkAndAddGhost();
         };
 
-        const handleMouseOut = (opt: any) => {
-            // Only consider mouse out if leaving the canvas (opt.target is null)
-            if (opt.target) return;
-
+        const handleNativeMouseLeave = () => {
+            // Real exit from the wrapper/canvas
             isMouseOver.current = false;
             if (ghostObj.current) {
                 fabricCanvas.remove(ghostObj.current);
@@ -180,25 +189,36 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             }
         };
 
+        // Fabric Events
         fabricCanvas.on('mouse:move', handleMouseMove);
-        fabricCanvas.on('mouse:over', handleMouseOver);
-        fabricCanvas.on('mouse:out', handleMouseOut);
         fabricCanvas.on('text:editing:entered', handleTextEditStart);
         fabricCanvas.on('text:editing:exited', handleTextEditEnd);
         fabricCanvas.on('mouse:down', handleMouseDown);
         fabricCanvas.on('mouse:up', handleMouseUp);
+
+        // Native Events for robust Entry/Exit (avoids object-hover flickering)
+        const upperCanvas = fabricCanvas.upperCanvasEl;
+        if (upperCanvas) {
+            upperCanvas.addEventListener('mouseenter', handleNativeMouseEnter);
+            upperCanvas.addEventListener('mouseleave', handleNativeMouseLeave);
+        }
+
         window.addEventListener('mouseup', handleGlobalMouseUp);
 
         return () => {
             if (ghostObj.current && fabricCanvas) fabricCanvas.remove(ghostObj.current);
             ghostObj.current = null;
+
             fabricCanvas.off('mouse:move', handleMouseMove);
-            fabricCanvas.off('mouse:over', handleMouseOver);
-            fabricCanvas.off('mouse:out', handleMouseOut);
             fabricCanvas.off('text:editing:entered', handleTextEditStart);
             fabricCanvas.off('text:editing:exited', handleTextEditEnd);
             fabricCanvas.off('mouse:down', handleMouseDown);
             fabricCanvas.off('mouse:up', handleMouseUp);
+
+            if (upperCanvas) {
+                upperCanvas.removeEventListener('mouseenter', handleNativeMouseEnter);
+                upperCanvas.removeEventListener('mouseleave', handleNativeMouseLeave);
+            }
             window.removeEventListener('mouseup', handleGlobalMouseUp);
         };
     }, [fabricCanvas, activeTool, toolSettings, pendingImage]);
