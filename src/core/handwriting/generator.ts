@@ -15,10 +15,10 @@ export interface HandwritingOptions {
 /**
  * Generates an SVG string of handwriting based on text input.
  * Uses a custom heuristic to randomize glyph placement and rotation, simulating natural handwriting.
- * 
+ *
  * @param text The text to convert to handwriting.
  * @param options Styling and randomization options.
- * @returns A Data URL string (SVG) of the generated handwriting.
+ * @returns A Data URL string (data:image/svg+xml;base64,...) containing the SVG rendering, or an empty string if generation fails (invalid dimensions).
  */
 export async function generateHandwriting(text: string, options: HandwritingOptions = {}): Promise<string> {
     const { color = 'black', strokeWidth = 1, randomness = 1, seed = 0 } = options;
@@ -125,7 +125,7 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
     const width = bbox.x2 - bbox.x1 + 20;
     const height = bbox.y2 - bbox.y1 + 20;
 
-    if (isNaN(width) || isNaN(height) || width <= 0) return '';
+    if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) return '';
 
     const viewBoxX = bbox.x1 - 10;
     const viewBoxY = bbox.y1 - 10;

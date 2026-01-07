@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Canvas, FabricImage, IText } from 'fabric';
 import { useToolStore } from '../store/useToolStore';
 import type { ToolType } from '../store/useToolStore';
@@ -25,83 +25,78 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
     const isMouseOver = useRef(false);
     const lastPointer = useRef<{ x: number, y: number } | null>(null);
 
-    useEffect(() => {
+    /**
+     * Adds the ghost to the canvas if conditions are met.
+     */
+    const checkAndAddGhost = useCallback(() => {
         if (!fabricCanvas) return;
+        if (ghostObj.current && isMouseOver.current && !isInteracting.current && lastPointer.current) {
+            ghostObj.current.set({ left: lastPointer.current.x, top: lastPointer.current.y });
 
-        /**
-         * Re-creates the ghost object based on current tool settings.
-         */
-        const updateGhost = () => {
-            // Cleanup existing ghost
-            if (ghostObj.current) {
-                fabricCanvas.remove(ghostObj.current);
-                ghostObj.current = null;
+            if (!fabricCanvas.contains(ghostObj.current)) {
+                fabricCanvas.add(ghostObj.current);
             }
 
-            // Don't create ghost if user is interacting with canvas
-            if (isInteracting.current) return;
+            fabricCanvas.bringObjectToFront(ghostObj.current);
+            fabricCanvas.requestRenderAll();
+        }
+    }, [fabricCanvas]);
 
-            if (activeTool === 'text') {
-                const text = new IText('Type here', {
-                    fontFamily: toolSettings.fontFamily,
-                    fontSize: toolSettings.fontSize,
-                    fill: toolSettings.color,
+    /**
+     * Re-creates the ghost object based on current tool settings.
+     */
+    const updateGhost = useCallback(() => {
+        if (!fabricCanvas) return;
+
+        if (ghostObj.current) {
+            fabricCanvas.remove(ghostObj.current);
+            ghostObj.current = null;
+        }
+
+        if (isInteracting.current) return;
+
+        if (activeTool === 'text') {
+            const text = new IText('Type here', {
+                fontFamily: toolSettings.fontFamily,
+                fontSize: toolSettings.fontSize,
+                fill: toolSettings.color,
+                opacity: 0.5,
+                evented: false,
+                selectable: false,
+                originX: 'left',
+                originY: 'top',
+                data: { isGhost: true }
+            });
+            ghostObj.current = text;
+            checkAndAddGhost();
+        } else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
+            FabricImage.fromURL(pendingImage).then((img) => {
+                if (!activeTool.match(/image|stamp|handwriting/)) return;
+                if (isInteracting.current) return;
+
+                // @ts-ignore
+                const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[pendingImage] : null;
+
+                img.set({
                     opacity: 0.5,
                     evented: false,
                     selectable: false,
-                    originX: 'left',
-                    originY: 'top',
+                    originX: 'center',
+                    originY: 'center',
+                    scaleX: storedScale?.scaleX ?? 0.5,
+                    scaleY: storedScale?.scaleY ?? 0.5,
                     data: { isGhost: true }
                 });
-                ghostObj.current = text;
+                ghostObj.current = img;
                 checkAndAddGhost();
-            } else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
-                FabricImage.fromURL(pendingImage).then((img) => {
-                    // Guard: verify tool didn't change while loading
-                    if (!activeTool.match(/image|stamp|handwriting/)) return;
-                    if (isInteracting.current) return;
+            });
+        }
+    }, [fabricCanvas, activeTool, toolSettings, pendingImage, checkAndAddGhost]);
 
-                    // Get stored scale for stamps if available
-                    // @ts-ignore
-                    const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[pendingImage] : null;
+    useEffect(() => {
+        if (!fabricCanvas) return;
 
-                    img.set({
-                        opacity: 0.5,
-                        evented: false,
-                        selectable: false,
-                        originX: 'center',
-                        originY: 'center',
-                        scaleX: storedScale?.scaleX ?? 0.5,
-                        scaleY: storedScale?.scaleY ?? 0.5,
-                        data: { isGhost: true }
-                    });
-                    ghostObj.current = img;
-                    checkAndAddGhost();
-                });
-            }
-        };
-
-        /**
-         * Adds the ghost to the canvas if conditions are met.
-         */
-        const checkAndAddGhost = () => {
-            if (ghostObj.current && isMouseOver.current && !isInteracting.current && lastPointer.current) {
-                ghostObj.current.set({ left: lastPointer.current.x, top: lastPointer.current.y });
-
-                if (!fabricCanvas.contains(ghostObj.current)) {
-                    fabricCanvas.add(ghostObj.current);
-                }
-
-                // Bring to front to ensure visibility over other objects
-                fabricCanvas.bringObjectToFront(ghostObj.current);
-                fabricCanvas.requestRenderAll();
-            }
-        };
-
-        // Initialize ghost
         updateGhost();
-
-        // --- Event Handlers ---
 
         const handleMouseMove = (opt: any) => {
             const pointer = fabricCanvas.getPointer(opt.e);
@@ -181,14 +176,12 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             }
         };
 
-        // Bind Fabric Events
         fabricCanvas.on('mouse:move', handleMouseMove);
         fabricCanvas.on('text:editing:entered', handleTextEditStart);
         fabricCanvas.on('text:editing:exited', handleTextEditEnd);
         fabricCanvas.on('mouse:down', handleMouseDown);
         fabricCanvas.on('mouse:up', handleMouseUp);
 
-        // Bind Native Events (on upperCanvas for reliable Enter/Leave)
         const upperCanvas = fabricCanvas.upperCanvasEl;
         if (upperCanvas) {
             upperCanvas.addEventListener('mouseenter', handleNativeMouseEnter);
@@ -197,7 +190,6 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
 
         window.addEventListener('mouseup', handleGlobalMouseUp);
 
-        // Cleanup
         return () => {
             if (ghostObj.current && fabricCanvas) fabricCanvas.remove(ghostObj.current);
             ghostObj.current = null;
@@ -214,5 +206,5 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             }
             window.removeEventListener('mouseup', handleGlobalMouseUp);
         };
-    }, [fabricCanvas, activeTool, toolSettings, pendingImage]);
+    }, [fabricCanvas, updateGhost]);
 }

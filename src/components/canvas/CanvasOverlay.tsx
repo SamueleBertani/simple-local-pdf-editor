@@ -121,7 +121,10 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                     });
                     fabricCanvas.add(img);
                     fabricCanvas.setActiveObject(img);
-                }).catch(err => console.error("Error loading image", err));
+                }).catch(err => {
+                    console.error("Error loading image", err);
+                    alert('Failed to load image. Please try again.');
+                });
             }
         };
 
