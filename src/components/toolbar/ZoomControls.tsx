@@ -1,27 +1,37 @@
 import { Minus, Plus, RotateCcw } from 'lucide-react';
 import { usePDFStore } from '../../store/usePDFStore';
 
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 3;
+const SCALE_STEP = 0.25;
+const DEFAULT_SCALE = 1;
+
+/**
+ * Floating zoom controls panel positioned at bottom-right of the viewport.
+ * Provides zoom in/out buttons, percentage display, and reset functionality.
+ */
 export function ZoomControls() {
     const { scale, setScale } = usePDFStore();
 
     const handleZoomIn = () => {
-        setScale(Math.min(3, scale + 0.25));
+        setScale(Math.min(MAX_SCALE, scale + SCALE_STEP));
     };
 
     const handleZoomOut = () => {
-        setScale(Math.max(0.5, scale - 0.25));
+        setScale(Math.max(MIN_SCALE, scale - SCALE_STEP));
     };
 
     const handleReset = () => {
-        setScale(1);
+        setScale(DEFAULT_SCALE);
     };
 
     return (
         <div className="fixed bottom-6 right-6 flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-lg shadow-xl z-50">
             <button
                 onClick={handleZoomOut}
+                aria-label="Zoom out"
                 className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
-                title="Zoom Out (Ctrl -)"
+                title="Zoom Out"
             >
                 <Minus className="w-4 h-4" />
             </button>
@@ -32,8 +42,9 @@ export function ZoomControls() {
 
             <button
                 onClick={handleZoomIn}
+                aria-label="Zoom in"
                 className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
-                title="Zoom In (Ctrl +)"
+                title="Zoom In"
             >
                 <Plus className="w-4 h-4" />
             </button>
@@ -42,6 +53,7 @@ export function ZoomControls() {
 
             <button
                 onClick={handleReset}
+                aria-label="Reset zoom to 100%"
                 className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-600 dark:text-slate-400 transition-colors"
                 title="Reset Zoom"
             >

@@ -1,5 +1,5 @@
 import type { ChangeEvent, DragEvent } from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Upload, Download, Moon, Sun } from 'lucide-react';
 import { PDFJS } from './core/pdf/pdfWorker';
 import { usePDFStore } from './store/usePDFStore';
@@ -23,28 +23,26 @@ function App() {
   const { theme, toggleTheme } = useTheme();
   useShortcuts();
 
+  // Keep scale in ref to avoid re-registering wheel listener on every scale change
+  const scaleRef = useRef(scale);
+  useEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
+
   // Gesture Support: Ctrl + Wheel for zooming
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
-      // Check for Ctrl key (standard for pinch-to-zoom on trackpads too)
       if (e.ctrlKey) {
-        e.preventDefault(); // Persist browser zoom
-
-        // Calculate new scale
-        const delta = -e.deltaY * 0.01; // Sensitivity
-        const newScale = Math.min(3, Math.max(0.5, scale + delta));
-
+        e.preventDefault(); // Prevent browser zoom
+        const delta = -e.deltaY * 0.01;
+        const newScale = Math.min(3, Math.max(0.5, scaleRef.current + delta));
         setScale(newScale);
       }
     };
 
-    // Add listener to window or specific container
     window.addEventListener('wheel', handleWheel, { passive: false });
-
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-    };
-  }, [scale, setScale]);
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, [setScale]);
 
   const loadFile = async (file: File) => {
     if (file.type !== 'application/pdf') {
