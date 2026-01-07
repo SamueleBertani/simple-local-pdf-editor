@@ -13,7 +13,7 @@ export function SettingsSidebar({ activeTool, visible }: SettingsSidebarProps) {
     if (!visible) return null;
 
     return (
-        <div className="w-80 bg-white border-l border-slate-200 flex flex-col z-10 shrink-0 h-full animate-in slide-in-from-right-10 duration-200 relative">
+        <div className="w-80 bg-white border-l border-slate-200 flex flex-col z-10 shrink-0 h-full animate-in slide-in-from-right-full duration-300 ease-in-out relative">
             <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                 <h3 className="text-sm font-semibold text-slate-900">
                     {activeTool === 'handwriting' && 'Signature Settings'}
