@@ -14,6 +14,16 @@ interface CanvasOverlayProps {
     pageIndex: number;
 }
 
+/**
+ * The core overlay component for each PDF page.
+ * Manages the Fabric.js canvas instance relative to the PDF page coordinates.
+ * 
+ * Responsibilities:
+ * - Initializes and scales the Fabric canvas.
+ * - Handles user input (Drawing, Text, Rectangle, Stamps).
+ * - Manages object placement and drag-and-drop between pages.
+ * - Integrates with shared stores (History, Clipboard, PDF).
+ */
 export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlayProps) {
     const { canvasRef, fabricCanvas } = useFabric({ width, height, scale });
     const { activeTool, pendingImage, setActiveTool, toolSettings } = useToolStore();
@@ -27,10 +37,11 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
     const startPos = useRef({ x: 0, y: 0 });
     const activeShape = useRef<any>(null);
 
+    // Hooks
     useCanvasHistory(fabricCanvas, pageIndex);
-
     useGhostObject({ fabricCanvas, activeTool, toolSettings, pendingImage });
 
+    // Register canvas with global store
     useEffect(() => {
         if (fabricCanvas) {
             registerCanvas(pageIndex, fabricCanvas);
@@ -110,7 +121,7 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                     });
                     fabricCanvas.add(img);
                     fabricCanvas.setActiveObject(img);
-                }).catch(console.error);
+                }).catch(err => console.error("Error loading image", err));
             }
         };
 

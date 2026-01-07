@@ -10,6 +10,15 @@ interface UseGhostObjectProps {
     pendingImage: string | null;
 }
 
+/**
+ * Hook to handle the "Ghost" object (preview) that follows the mouse cursor.
+ * Used for tools like Text, Stamps, and Handwriting to show where the object will be placed.
+ * 
+ * Handles:
+ * - Creating/Updating the ghost object based on the active tool.
+ * - Moving the ghost with the mouse.
+ * - Hiding the ghost during interactions or when leaving the canvas.
+ */
 export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pendingImage }: UseGhostObjectProps) {
     const ghostObj = useRef<any>(null);
     const isInteracting = useRef(false);
@@ -19,15 +28,17 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
     useEffect(() => {
         if (!fabricCanvas) return;
 
-        // Helper: Update Ghost
+        /**
+         * Re-creates the ghost object based on current tool settings.
+         */
         const updateGhost = () => {
-            // Remove existing ghost if any
+            // Cleanup existing ghost
             if (ghostObj.current) {
                 fabricCanvas.remove(ghostObj.current);
                 ghostObj.current = null;
             }
 
-            // Don't create ghost if interacting (editing text or moving objects)
+            // Don't create ghost if user is interacting with canvas
             if (isInteracting.current) return;
 
             if (activeTool === 'text') {
@@ -48,9 +59,9 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                 FabricImage.fromURL(pendingImage).then((img) => {
                     // Guard: verify tool didn't change while loading
                     if (!activeTool.match(/image|stamp|handwriting/)) return;
-                    if (isInteracting.current) return; // Check again after async load
+                    if (isInteracting.current) return;
 
-                    // Get stored scale for this stamp if available
+                    // Get stored scale for stamps if available
                     // @ts-ignore
                     const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[pendingImage] : null;
 
@@ -70,36 +81,35 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             }
         };
 
-        // Helper: Check if ghost should be added and add it
+        /**
+         * Adds the ghost to the canvas if conditions are met.
+         */
         const checkAndAddGhost = () => {
             if (ghostObj.current && isMouseOver.current && !isInteracting.current && lastPointer.current) {
-                // Update position
                 ghostObj.current.set({ left: lastPointer.current.x, top: lastPointer.current.y });
 
                 if (!fabricCanvas.contains(ghostObj.current)) {
                     fabricCanvas.add(ghostObj.current);
                 }
 
-                // Only bring to front once when adding/showing
+                // Bring to front to ensure visibility over other objects
                 fabricCanvas.bringObjectToFront(ghostObj.current);
                 fabricCanvas.requestRenderAll();
             }
         };
 
-        // Initial setup
+        // Initialize ghost
         updateGhost();
+
+        // --- Event Handlers ---
 
         const handleMouseMove = (opt: any) => {
             const pointer = fabricCanvas.getPointer(opt.e);
             lastPointer.current = { x: pointer.x, y: pointer.y };
 
-            if (!isMouseOver.current) {
-                isMouseOver.current = true;
-            }
-
+            if (!isMouseOver.current) isMouseOver.current = true;
             if (isInteracting.current) return;
 
-            // Move Ghost
             if (ghostObj.current) {
                 ghostObj.current.set({ left: pointer.x, top: pointer.y });
 
@@ -107,7 +117,6 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                     fabricCanvas.add(ghostObj.current);
                     fabricCanvas.bringObjectToFront(ghostObj.current);
                 }
-                // PERFORMANCE FIX: Removed continuous bringObjectToFront here to prevent stutter
 
                 fabricCanvas.requestRenderAll();
             }
@@ -115,26 +124,12 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
 
         const handleNativeMouseEnter = (e: MouseEvent) => {
             isMouseOver.current = true;
-
-            // Calculate pointer relative to canvas element
-            // This corresponds to fabric's logic somewhat, but getPointer usually takes event.
-            // We can just rely on the next mousemove to set lastPointer precise,
-            // or try to set it here.
-
-            // Simple: just mark mouseOver, let checkAndAddGhost add it (might use old lastPointer or wait for move)
-            // If we want instant appearance at entry point:
-            // We need to simulate the pointer calculation.
-            // But fabric's getPointer needs the event.
-            // We can pass 'e' to it?
-            // fabricCanvas.getPointer(e) works with native events too.
             const pointer = fabricCanvas.getPointer(e);
             lastPointer.current = { x: pointer.x, y: pointer.y };
-
             checkAndAddGhost();
         };
 
         const handleNativeMouseLeave = () => {
-            // Real exit from the wrapper/canvas
             isMouseOver.current = false;
             if (ghostObj.current) {
                 fabricCanvas.remove(ghostObj.current);
@@ -142,7 +137,6 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             }
         };
 
-        // Interaction Handlers
         const handleTextEditStart = () => {
             isInteracting.current = true;
             if (ghostObj.current) {
@@ -157,7 +151,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
         };
 
         const handleMouseDown = (opt: any) => {
-            // If clicking on a real object (not ghost), we are finding to interact
+            // Interact only if clicking on a real object
             if (opt.target && !opt.target.data?.isGhost) {
                 isInteracting.current = true;
                 if (ghostObj.current) {
@@ -169,9 +163,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
 
         const handleMouseUp = () => {
             const activeObj = fabricCanvas.getActiveObject() as any;
-            if (activeObj && activeObj.isEditing) {
-                return;
-            }
+            if (activeObj && activeObj.isEditing) return;
 
             if (isInteracting.current) {
                 isInteracting.current = false;
@@ -189,14 +181,14 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             }
         };
 
-        // Fabric Events
+        // Bind Fabric Events
         fabricCanvas.on('mouse:move', handleMouseMove);
         fabricCanvas.on('text:editing:entered', handleTextEditStart);
         fabricCanvas.on('text:editing:exited', handleTextEditEnd);
         fabricCanvas.on('mouse:down', handleMouseDown);
         fabricCanvas.on('mouse:up', handleMouseUp);
 
-        // Native Events for robust Entry/Exit (avoids object-hover flickering)
+        // Bind Native Events (on upperCanvas for reliable Enter/Leave)
         const upperCanvas = fabricCanvas.upperCanvasEl;
         if (upperCanvas) {
             upperCanvas.addEventListener('mouseenter', handleNativeMouseEnter);
@@ -205,6 +197,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
 
         window.addEventListener('mouseup', handleGlobalMouseUp);
 
+        // Cleanup
         return () => {
             if (ghostObj.current && fabricCanvas) fabricCanvas.remove(ghostObj.current);
             ghostObj.current = null;

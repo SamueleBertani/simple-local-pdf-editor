@@ -4,6 +4,12 @@ import type { ToolType } from '../../store/useToolStore';
 import { useToolStore } from '../../store/useToolStore';
 import { clsx } from 'clsx';
 
+/**
+ * Main toolbar for the editor.
+ * Houses tools for editing (Handwriting, Text, Shapes) and the Image uploader.
+ * 
+ * Manages the active tool state in `useToolStore`.
+ */
 export function Toolbar() {
     const { activeTool, setActiveTool, setPendingImage } = useToolStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -19,7 +25,7 @@ export function Toolbar() {
     const ToolBtn = ({ tool, icon: Icon, label, title }: { tool: ToolType, icon: React.ElementType, label: string, title?: string }) => (
         <button
             onClick={() => handleToolClick(tool)}
-            title={title} // Add title attribute
+            title={title}
             className={clsx(
                 "flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-left",
                 activeTool === tool

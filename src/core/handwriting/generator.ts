@@ -12,6 +12,14 @@ export interface HandwritingOptions {
     seed?: number; // Variation seed
 }
 
+/**
+ * Generates an SVG string of handwriting based on text input.
+ * Uses a custom heuristic to randomize glyph placement and rotation, simulating natural handwriting.
+ * 
+ * @param text The text to convert to handwriting.
+ * @param options Styling and randomization options.
+ * @returns A Data URL string (SVG) of the generated handwriting.
+ */
 export async function generateHandwriting(text: string, options: HandwritingOptions = {}): Promise<string> {
     const { color = 'black', strokeWidth = 1, randomness = 1, seed = 0 } = options;
 
@@ -29,7 +37,7 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
             const buffer = await response.arrayBuffer();
             cachedFont = lib.parse(buffer);
         } catch (error) {
-            console.error('Detailed handwriting error:', error);
+            console.error('Handwriting generation error:', error);
             throw error;
         }
     }
@@ -83,10 +91,8 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
             if (cmd.x !== undefined && cmd.y !== undefined) {
                 const px = cmd.x - cx;
                 const py = cmd.y - cy;
-
                 const nx = px * cos - py * sin + cx;
                 const ny = px * sin + py * cos + cy;
-
                 cmd.x = nx + xCurr + xOff;
                 cmd.y = ny + fontSize + yOff;
             }
@@ -119,7 +125,7 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
     const width = bbox.x2 - bbox.x1 + 20;
     const height = bbox.y2 - bbox.y1 + 20;
 
-    if (isNaN(width) || isNaN(height) || width <= 0 || null) return '';
+    if (isNaN(width) || isNaN(height) || width <= 0) return '';
 
     const viewBoxX = bbox.x1 - 10;
     const viewBoxY = bbox.y1 - 10;

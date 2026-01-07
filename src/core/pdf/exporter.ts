@@ -4,7 +4,12 @@ import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 /**
  * Exports the current PDF document and its overlay canvases to a new PDF file.
- * Embeds the overlay canvases as PNG images on top of the existing PDF pages.
+ * This process involves:
+ * 1. Loading the original PDF bytes.
+ * 2. Iterating through each page.
+ * 3. Converting corresponding Fabric.js canvases to high-res PNGs.
+ * 4. Embedding these PNGs onto the PDF pages.
+ * 5. Saving and triggering a download of the modified PDF.
  * 
  * @param pdfProxy - The source PDF document proxy from PDF.js.
  * @param canvases - A record mapping page numbers (1-based) to Fabric.js canvas instances.

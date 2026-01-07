@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
 
+/**
+ * Custom hook to manage the application theme (Light/Dark).
+ * Supports manual toggling and persistence via localStorage.
+ * Defaults to manual override if present, otherwise falls back to system preference.
+ */
 export function useTheme() {
     // Initialize state
     const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -28,11 +33,9 @@ export function useTheme() {
         localStorage.setItem('theme', theme);
     }, [theme]);
 
-    // Listen for system changes ONLY if no localStorage override exists?
-    // Actually, simple approach: manual override wins. 
-    // If we want system to drive it again, user would need to "clear" setting.
-    // For now, let's just stick to manual toggle + initial system detection.
-
+    /**
+     * Toggles between light and dark mode.
+     */
     const toggleTheme = () => {
         setTheme(prev => prev === 'dark' ? 'light' : 'dark');
     };

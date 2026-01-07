@@ -11,8 +11,10 @@ interface UseFabricProps {
  * Custom hook to initialize and manage a Fabric.js canvas instance.
  * Handles canvas creation, resizing, and cleanup.
  * 
- * @param props Configuration properties (width, height, scale)
- * @returns Ref for the canvas element and the initialized fabric.Canvas instance
+ * @param props.width Output width of the canvas
+ * @param props.height Output height of the canvas
+ * @param props.scale Current zoom scale to apply
+ * @returns Object containing the canvas DOM ref and the initialized fabric instance
  */
 export function useFabric({ width, height, scale }: UseFabricProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
