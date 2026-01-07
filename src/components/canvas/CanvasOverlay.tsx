@@ -88,10 +88,18 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                 text.selectAll();
             } else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
                 FabricImage.fromURL(pendingImage).then((img) => {
+                    // Check for stored scale if it's a stamp
+                    // @ts-ignore
+                    const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[pendingImage] : null;
+
                     img.set({
                         left: pointer.x, top: pointer.y,
                         originX: 'center', originY: 'center',
-                        scaleX: 0.5, scaleY: 0.5
+                        scaleX: storedScale?.scaleX ?? 0.5,
+                        scaleY: storedScale?.scaleY ?? 0.5,
+                        data: {
+                            stampUrl: activeTool === 'stamp' ? pendingImage : undefined
+                        }
                     });
                     fabricCanvas.add(img);
                     fabricCanvas.setActiveObject(img);
@@ -128,14 +136,29 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
             }
         };
 
+        const handleObjectModified = (e: any) => {
+            const target = e.target;
+            if (!target) return;
+
+            // If it's a stamp (has stampUrl in data), save the new scale
+            if (target.data?.stampUrl) {
+                useToolStore.getState().setStampScale(target.data.stampUrl, {
+                    scaleX: target.scaleX || 0.5,
+                    scaleY: target.scaleY || 0.5
+                });
+            }
+        };
+
         fabricCanvas.on('mouse:down', handleMouseDown);
         fabricCanvas.on('mouse:move', handleMouseMove);
         fabricCanvas.on('mouse:up', handleMouseUp);
+        fabricCanvas.on('object:modified', handleObjectModified);
 
         return () => {
             fabricCanvas.off('mouse:down', handleMouseDown);
             fabricCanvas.off('mouse:move', handleMouseMove);
             fabricCanvas.off('mouse:up', handleMouseUp);
+            fabricCanvas.off('object:modified', handleObjectModified);
         };
     }, [fabricCanvas, activeTool, toolSettings, pendingImage, setActiveTool]);
 

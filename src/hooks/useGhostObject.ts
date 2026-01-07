@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Canvas, FabricImage, IText } from 'fabric';
+import { useToolStore } from '../store/useToolStore';
 import type { ToolType } from '../store/useToolStore';
 
 interface UseGhostObjectProps {
@@ -40,14 +41,18 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                     // Guard: verify tool didn't change while loading
                     if (!activeTool.match(/image|stamp|handwriting/)) return;
 
+                    // Get stored scale for this stamp if available
+                    // @ts-ignore
+                    const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[pendingImage] : null;
+
                     img.set({
                         opacity: 0.5,
                         evented: false,
                         selectable: false,
                         originX: 'center',
                         originY: 'center',
-                        scaleX: 0.5,
-                        scaleY: 0.5,
+                        scaleX: storedScale?.scaleX ?? 0.5,
+                        scaleY: storedScale?.scaleY ?? 0.5,
                         data: { isGhost: true }
                     });
                     ghostObj.current = img;
