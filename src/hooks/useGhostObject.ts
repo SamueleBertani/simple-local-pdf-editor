@@ -48,6 +48,16 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
     const updateGhost = useCallback(() => {
         if (!fabricCanvas) return;
 
+        // Disable ghost on mobile
+        if (window.innerWidth < 768) {
+            if (ghostObj.current) {
+                fabricCanvas.remove(ghostObj.current);
+                ghostObj.current = null;
+                fabricCanvas.requestRenderAll();
+            }
+            return;
+        }
+
         if (ghostObj.current) {
             fabricCanvas.remove(ghostObj.current);
             ghostObj.current = null;
@@ -99,6 +109,8 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
         updateGhost();
 
         const handleMouseMove = (opt: any) => {
+            if (window.innerWidth < 768) return;
+
             const pointer = fabricCanvas.getPointer(opt.e);
             lastPointer.current = { x: pointer.x, y: pointer.y };
 
