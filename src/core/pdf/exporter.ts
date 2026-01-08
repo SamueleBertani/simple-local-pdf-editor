@@ -65,6 +65,8 @@ export const DEFAULT_EXPORT_QUALITY = EXPORT_QUALITY_PRESETS.medium;
 
 /** Result of PDF export with size information */
 export interface ExportResult {
+    /** Exported PDF bytes */
+    pdfBytes: Uint8Array;
     /** Original file size in bytes */
     originalSize: number;
     /** Exported file size in bytes */
@@ -180,7 +182,7 @@ export async function exportToPdf(
     // Cast to any to bypass strict BlobPart check if typed array mismatch occurs
     downloadFile(new Blob([pdfBytes as any], { type: 'application/pdf' }), 'edited_document.pdf');
 
-    return { originalSize, exportedSize, percentChange };
+    return { pdfBytes, originalSize, exportedSize, percentChange };
 }
 
 import { applyScannerEffect } from '../image/scannerEffect';
