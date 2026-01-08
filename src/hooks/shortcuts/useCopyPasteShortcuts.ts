@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import * as fabric from 'fabric';
+import type { FabricObject } from 'fabric';
 import { usePDFStore } from '../../store/usePDFStore';
 import { useClipboardStore } from '../../store/useClipboardStore';
 import { generateId } from '../../utils/generateId';
+import { isInputFocused } from '../../utils/keyboard';
 
 export function useCopyPasteShortcuts() {
     const { canvases } = usePDFStore();
@@ -10,9 +12,7 @@ export function useCopyPasteShortcuts() {
 
     useEffect(() => {
         const handleKeyDown = async (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                return;
-            }
+            if (isInputFocused(e)) return;
 
             const isCmdOrCtrl = e.metaKey || e.ctrlKey;
 
@@ -47,22 +47,20 @@ export function useCopyPasteShortcuts() {
                     const canvas = canvases[targetPageIndex];
                     const objects = await fabric.util.enlivenObjects([clipboard], {});
 
-                    objects.forEach((obj: any) => {
-                        obj.set({
-                            left: obj.left + 20,
-                            top: obj.top + 20,
-                            evented: true,
-                        });
-
-                        // New ID for pasted object
-                        if (obj.set) {
-                            obj.set('id', generateId());
+                    for (const obj of objects) {
+                        if ('set' in obj && typeof obj.set === 'function') {
+                            const fabricObj = obj as FabricObject;
+                            fabricObj.set({
+                                left: (fabricObj.left ?? 0) + 20,
+                                top: (fabricObj.top ?? 0) + 20,
+                                evented: true,
+                                id: generateId(),
+                            });
+                            canvas.add(fabricObj);
+                            canvas.setActiveObject(fabricObj);
+                            canvas.requestRenderAll();
                         }
-
-                        canvas.add(obj);
-                        canvas.setActiveObject(obj);
-                        canvas.requestRenderAll();
-                    });
+                    }
                 }
                 return;
             }
@@ -70,26 +68,20 @@ export function useCopyPasteShortcuts() {
             // Duplicate: Cmd+D
             if (isCmdOrCtrl && e.key === 'd') {
                 e.preventDefault();
-                // Find active object
                 for (const canvas of Object.values(canvases)) {
                     const activeObject = canvas.getActiveObject();
                     if (activeObject) {
-                        activeObject.clone()
-                            .then((cloned: any) => {
-                                cloned.set({
-                                    left: activeObject.left! + 20,
-                                    top: activeObject.top! + 20,
-                                    evented: true,
-                                    id: generateId(),
-                                });
-
-                                canvas.add(cloned);
-                                canvas.setActiveObject(cloned);
-                                canvas.requestRenderAll();
-                            })
-                            .catch((err: Error) => {
-                                console.error('Failed to duplicate object:', err);
+                        activeObject.clone().then((cloned: FabricObject) => {
+                            cloned.set({
+                                left: (activeObject.left ?? 0) + 20,
+                                top: (activeObject.top ?? 0) + 20,
+                                evented: true,
+                                id: generateId(),
                             });
+                            canvas.add(cloned);
+                            canvas.setActiveObject(cloned);
+                            canvas.requestRenderAll();
+                        });
                         break;
                     }
                 }

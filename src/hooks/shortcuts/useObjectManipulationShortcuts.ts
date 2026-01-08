@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
+import type { FabricObject } from 'fabric';
 import { usePDFStore } from '../../store/usePDFStore';
 import { useToolStore } from '../../store/useToolStore';
+import { isInputFocused } from '../../utils/keyboard';
 
 export function useObjectManipulationShortcuts() {
     const { canvases } = usePDFStore();
@@ -8,15 +10,17 @@ export function useObjectManipulationShortcuts() {
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                return;
-            }
+            if (isInputFocused(e)) return;
 
-            // Escape: Deselect / Reset Tool
             const isEscape = e.key === 'Escape';
             if (isEscape) {
                 setActiveTool('select');
                 setPendingImage(null);
+                Object.values(canvases).forEach((canvas) => {
+                    canvas?.discardActiveObject();
+                    canvas?.requestRenderAll();
+                });
+                return;
             }
 
             if (Object.keys(canvases).length === 0) return;
@@ -25,32 +29,21 @@ export function useObjectManipulationShortcuts() {
                 if (!canvas) return;
 
                 const activeObject = canvas.getActiveObject();
-
-                // Escape: Deselect on canvas
-                if (isEscape) {
-                    canvas.discardActiveObject();
-                    canvas.requestRenderAll();
-                }
-
                 if (!activeObject) return;
 
                 // Delete / Backspace
-                const isDelete = e.key === 'Delete' || e.key === 'Backspace';
-                if (isDelete) {
+                if (e.key === 'Delete' || e.key === 'Backspace') {
                     const activeObjects = canvas.getActiveObjects();
-                    if (activeObjects.length) {
-                        activeObjects.forEach((obj: any) => {
-                            canvas.remove(obj);
-                        });
-                        canvas.discardActiveObject();
-                        canvas.requestRenderAll();
-                    }
+                    activeObjects.forEach((obj: FabricObject) => canvas.remove(obj));
+                    canvas.discardActiveObject();
+                    canvas.requestRenderAll();
+                    return;
                 }
 
                 // Arrow Keys Nudge
-                const step = e.shiftKey ? 10 : 1;
                 if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
                     e.preventDefault();
+                    const step = e.shiftKey ? 10 : 1;
                     if (e.key === 'ArrowLeft') activeObject.set('left', activeObject.left! - step);
                     if (e.key === 'ArrowRight') activeObject.set('left', activeObject.left! + step);
                     if (e.key === 'ArrowUp') activeObject.set('top', activeObject.top! - step);

@@ -1,14 +1,13 @@
 import { useEffect } from 'react';
 import { useHistoryStore } from '../../store/useHistoryStore';
+import { isInputFocused } from '../../utils/keyboard';
 
 export function useUndoRedoShortcuts() {
     const { undo, redo } = useHistoryStore();
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                return;
-            }
+            if (isInputFocused(e)) return;
 
             const isCmdOrCtrl = e.metaKey || e.ctrlKey;
 
