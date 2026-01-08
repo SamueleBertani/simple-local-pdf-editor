@@ -160,7 +160,7 @@ function App() {
       addNotification({
         type: 'error',
         title: 'Export Error',
-        message: 'Errore durante l\'esportazione del PDF'
+        message: 'Error exporting the PDF'
       });
     } finally {
       setIsExporting(false);

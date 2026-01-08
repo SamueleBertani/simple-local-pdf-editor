@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/Button';
 import { EXPORT_QUALITY_PRESETS, DEFAULT_EXPORT_QUALITY } from '../../core/pdf/exporter';
 import type { ExportQualityOptions } from '../../core/pdf/exporter';
@@ -17,19 +17,77 @@ const PRESET_KEYS = ['high', 'medium', 'low'] as const;
  * Offers presets for balancing file size vs visual quality.
  */
 export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: ExportQualityModalProps) {
-    const [selectedPreset, setSelectedPreset] = useState<string>('high');
+    const [selectedPreset, setSelectedPreset] = useState<string>('medium');
+    const modalRef = useRef<HTMLDivElement>(null);
+    const firstFocusableRef = useRef<HTMLButtonElement>(null);
+
+    // Handle Escape key to close modal
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !isProcessing) {
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, isProcessing, onClose]);
+
+    // Focus trap and initial focus
+    useEffect(() => {
+        if (!isOpen || !modalRef.current) return;
+
+        // Focus first preset button when modal opens
+        firstFocusableRef.current?.focus();
+
+        const modal = modalRef.current;
+        const focusableElements = modal.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        const handleTabKey = (e: KeyboardEvent) => {
+            if (e.key !== 'Tab') return;
+
+            if (e.shiftKey) {
+                if (document.activeElement === firstElement) {
+                    e.preventDefault();
+                    lastElement?.focus();
+                }
+            } else {
+                if (document.activeElement === lastElement) {
+                    e.preventDefault();
+                    firstElement?.focus();
+                }
+            }
+        };
+
+        modal.addEventListener('keydown', handleTabKey);
+        return () => modal.removeEventListener('keydown', handleTabKey);
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
     const selectedOptions = EXPORT_QUALITY_PRESETS[selectedPreset] || DEFAULT_EXPORT_QUALITY;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-in fade-in zoom-in-95 duration-200">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="export-modal-title"
+        >
+            <div
+                ref={modalRef}
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-in fade-in zoom-in-95 duration-200"
+            >
                 <div className="mb-6">
-                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Qualità Export</h2>
+                    <h2 id="export-modal-title" className="text-xl font-bold text-slate-800 dark:text-slate-100">Export Quality</h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        Scegli il livello di compressione del PDF
+                        Choose the PDF compression level
                     </p>
                 </div>
 
@@ -41,6 +99,7 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: 
                         return (
                             <button
                                 key={key}
+                                ref={key === 'high' ? firstFocusableRef : undefined}
                                 onClick={() => setSelectedPreset(key)}
                                 className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
                                     isSelected
@@ -83,13 +142,14 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: 
                         disabled={isProcessing}
                         className="w-full"
                     >
-                        {isProcessing ? 'Esportazione...' : 'Scarica PDF'}
+                        {isProcessing ? 'Exporting...' : 'Download PDF'}
                     </Button>
                     <button
                         onClick={onClose}
-                        className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                        disabled={isProcessing}
+                        className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 disabled:opacity-50"
                     >
-                        Annulla
+                        Cancel
                     </button>
                 </div>
             </div>

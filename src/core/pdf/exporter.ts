@@ -1,6 +1,7 @@
 import { PDFDocument } from 'pdf-lib';
 import JSZip from 'jszip';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
+import type { Canvas } from 'fabric';
 
 /**
  * Export quality options for controlling file size vs visual quality tradeoff.
@@ -24,26 +25,26 @@ export const EXPORT_QUALITY_PRESETS: Record<string, ExportQualityOptions> = {
         format: 'png',
         quality: 1,
         multiplier: 2,
-        label: 'Alta',
-        description: 'Massima qualità, file più pesante'
+        label: 'High',
+        description: 'Maximum quality, larger file size'
     },
     medium: {
         format: 'jpeg',
         quality: 0.85,
         multiplier: 1,
-        label: 'Media',
-        description: 'Buon compromesso qualità/peso'
+        label: 'Medium',
+        description: 'Good balance of quality and size'
     },
     low: {
         format: 'jpeg',
         quality: 0.65,
         multiplier: 1,
-        label: 'Bassa',
-        description: 'File più leggero'
+        label: 'Low',
+        description: 'Smaller file size'
     }
 };
 
-export const DEFAULT_EXPORT_QUALITY = EXPORT_QUALITY_PRESETS.high;
+export const DEFAULT_EXPORT_QUALITY = EXPORT_QUALITY_PRESETS.medium;
 
 /**
  * Exports the current PDF document and its overlay canvases to a new PDF file.
@@ -60,7 +61,7 @@ export const DEFAULT_EXPORT_QUALITY = EXPORT_QUALITY_PRESETS.high;
  */
 export async function exportToPdf(
     pdfProxy: PDFDocumentProxy,
-    canvases: Record<number, any>,
+    canvases: Record<number, Canvas>,
     qualityOptions: ExportQualityOptions = DEFAULT_EXPORT_QUALITY
 ) {
     const existingPdfBytes = await pdfProxy.getData();
@@ -117,7 +118,7 @@ import type { ScannerOptions } from '../image/scannerEffect';
 export async function renderPageToCanvas(
     pdfProxy: PDFDocumentProxy,
     pageIndex: number,
-    overlayCanvas?: any,
+    overlayCanvas?: Canvas,
     scale: number = 2
 ): Promise<HTMLCanvasElement> {
     const page = await pdfProxy.getPage(pageIndex);
@@ -163,7 +164,7 @@ export async function renderPageToCanvas(
  */
 export async function exportToImages(
     pdfProxy: PDFDocumentProxy,
-    canvases: Record<number, any>,
+    canvases: Record<number, Canvas>,
     scannerOptions?: ScannerOptions
 ) {
     const isSinglePage = pdfProxy.numPages === 1;
