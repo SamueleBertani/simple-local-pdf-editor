@@ -10,10 +10,36 @@ interface ExportQualityModalProps {
     onClose: () => void;
     onExport: (options: ExportQualityOptions) => void;
     isProcessing: boolean;
+    progress?: number;
+    progressStage?: string;
 }
 
 const PRESET_KEYS = ['high', 'medium', 'low', 'extreme'] as const;
 const REENCODE_QUALITY_KEYS: CompressionQuality[] = ['ebook', 'screen'];
+
+/**
+ * Progress bar component for showing compression progress.
+ */
+function ProgressBar({ progress, stage }: { progress: number; stage?: string }) {
+    return (
+        <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-600 dark:text-slate-400">
+                    {stage || 'Processing...'}
+                </span>
+                <span className="font-medium text-indigo-600 dark:text-indigo-400">
+                    {Math.round(progress)}%
+                </span>
+            </div>
+            <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div
+                    className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+                />
+            </div>
+        </div>
+    );
+}
 
 /**
  * Shows which compression strategy will be used based on device capabilities.
@@ -60,7 +86,7 @@ function StrategyIndicator() {
  * Modal for selecting PDF export quality before download.
  * Offers presets for balancing file size vs visual quality.
  */
-export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: ExportQualityModalProps) {
+export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing, progress = 0, progressStage }: ExportQualityModalProps) {
     const [selectedPreset, setSelectedPreset] = useState<string>('medium');
     const [useReencode, setUseReencode] = useState(false);
     const [reencodeQuality, setReencodeQuality] = useState<CompressionQuality>('ebook');
@@ -260,13 +286,19 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: 
                 </div>
 
                 <div className="flex flex-col gap-3">
-                    <Button
-                        onClick={handleExport}
-                        disabled={isProcessing}
-                        className="w-full"
-                    >
-                        {isProcessing ? 'Exporting...' : 'Download PDF'}
-                    </Button>
+                    {isProcessing ? (
+                        <div className="py-2">
+                            <ProgressBar progress={progress} stage={progressStage} />
+                        </div>
+                    ) : (
+                        <Button
+                            onClick={handleExport}
+                            disabled={isProcessing}
+                            className="w-full"
+                        >
+                            Download PDF
+                        </Button>
+                    )}
                     <button
                         onClick={onClose}
                         disabled={isProcessing}

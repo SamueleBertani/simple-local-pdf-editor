@@ -110,6 +110,8 @@ function App() {
   /* Export Quality Modal Logic */
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportStage, setExportStage] = useState<string>('');
 
   /* Scanner Effect Logic */
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -159,6 +161,8 @@ function App() {
   const handleExportWithQuality = async (options: ExportQualityOptions) => {
     if (!pdfDocument) return;
     setIsExporting(true);
+    setExportProgress(0);
+    setExportStage('Starting...');
     try {
       triggerConfetti();
 
@@ -177,7 +181,8 @@ function App() {
           level: compressionLevel,
           grayscale: options.grayscale,
           onProgress: (progress, stage) => {
-            console.log(`Compression: ${progress}% - ${stage}`);
+            setExportProgress(progress);
+            setExportStage(stage);
           }
         });
 
@@ -187,10 +192,13 @@ function App() {
         percentChange = -result.compressionRatio * 100;
       } else {
         // Use standard export
+        setExportStage('Exporting PDF...');
+        setExportProgress(50);
         const result = await exportToPdf(pdfDocument, canvases, options);
         originalSize = result.originalSize;
         exportedSize = result.exportedSize;
         percentChange = result.percentChange;
+        setExportProgress(100);
       }
 
       setIsExportModalOpen(false);
@@ -388,6 +396,8 @@ function App() {
         onClose={() => setIsExportModalOpen(false)}
         onExport={handleExportWithQuality}
         isProcessing={isExporting}
+        progress={exportProgress}
+        progressStage={exportStage}
       />
 
       {/* Notifications */}
