@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { IText, Canvas } from 'fabric';
+import type { ToolSettings } from '../../../types';
 
 interface TextCreationHandlerProps {
     fabricCanvas: Canvas | null;
     activeTool: string;
-    toolSettings: any;
+    toolSettings: ToolSettings;
 }
 
 export const TextCreationHandler = ({

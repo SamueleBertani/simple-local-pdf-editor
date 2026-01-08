@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { Rect, Canvas } from 'fabric';
+import type { ToolSettings } from '../../../types';
 
 interface RectangleDrawingHandlerProps {
     fabricCanvas: Canvas | null;
     activeTool: string;
-    toolSettings: any;
+    toolSettings: ToolSettings;
     setIsDraggingCanvas: (isDragging: boolean) => void;
 }
 
@@ -23,35 +24,9 @@ export const RectangleDrawingHandler = ({
 
         const handleMouseDown = (opt: any) => {
             if (activeTool !== 'rectangle') return;
+            if (opt.target && !opt.target.data?.isGhost) return;
 
             const pointer = fabricCanvas.getPointer(opt.e);
-
-            // Allow selection of existing objects (ignore if clicking ghost)
-            // But if we are in rectangle tool and simply clicked text, we might want to start drawing?
-            // The original logic checked opt.target first globally. 
-            // We should assume the parent handles the "select existing" check OR we do it here.
-            // Original logic:
-            // if (opt.target && !opt.target.data?.isGhost) { setIsDraggingCanvas(true); return; }
-            // This handler specifically handles DRAWING. So if we clicked an object, we probably shouldn't draw.
-            // However, the parent `CanvasOverlay` manages the global mouse down. 
-            // Ideally this handler is ONLY for when we ARE drawing.
-
-            // Let's rely on the fact that if we are in 'rectangle' mode, we might want to draw ON TOP of things?
-            // Or usually if we click a shape in rect mode, do we select it?
-            // "ActiveTool === rectangle" usually implies drawing mode.
-
-            // Original logic was:
-            /*
-           if (opt.target && !opt.target.data?.isGhost) {
-                setIsDraggingCanvas(true);
-                return;
-            }
-            if (activeTool === 'rectangle') { ... }
-            */
-            // So if we clicked a target, we returned EARLY in the parent.
-            // WE must respect that. If `opt.target` is present, we should probably NOT draw.
-
-            if (opt.target && !opt.target.data?.isGhost) return;
 
             isDragging.current = true;
             startPos.current = { x: pointer.x, y: pointer.y };
@@ -91,9 +66,18 @@ export const RectangleDrawingHandler = ({
             if (isDragging.current) {
                 isDragging.current = false;
                 if (activeShape.current) {
-                    activeShape.current.set({ selectable: true, evented: true });
-                    activeShape.current.setCoords();
-                    fabricCanvas.setActiveObject(activeShape.current);
+                    const rect = activeShape.current;
+                    const width = rect.width ?? 0;
+                    const height = rect.height ?? 0;
+
+                    // Remove if too small (accidental click)
+                    if (width < 5 && height < 5) {
+                        fabricCanvas.remove(rect);
+                    } else {
+                        rect.set({ selectable: true, evented: true });
+                        rect.setCoords();
+                        fabricCanvas.setActiveObject(rect);
+                    }
                     activeShape.current = null;
                 }
                 setIsDraggingCanvas(false);
