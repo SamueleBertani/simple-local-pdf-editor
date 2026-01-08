@@ -9,7 +9,9 @@ import { Toolbar } from './components/toolbar/Toolbar';
 import { SettingsSidebar } from './components/layout/SettingsSidebar';
 import { useShortcuts } from './hooks/useShortcuts';
 import { exportToPdf, exportToImages, renderPageToCanvas } from './core/pdf/exporter';
+import type { ExportQualityOptions } from './core/pdf/exporter';
 import { ScannerEffectModal } from './components/modals/ScannerEffectModal';
+import { ExportQualityModal } from './components/modals/ExportQualityModal';
 import { clsx } from 'clsx';
 import { useToolStore, hasToolSettings } from './store/useToolStore';
 import confetti from 'canvas-confetti';
@@ -103,6 +105,10 @@ function App() {
     });
   };
 
+  /* Export Quality Modal Logic */
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
   /* Scanner Effect Logic */
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [scannerPreview, setScannerPreview] = useState<HTMLCanvasElement | null>(null);
@@ -137,10 +143,28 @@ function App() {
     }
   };
 
-  const handleExportPDF = async () => {
+  const handleExportPDF = () => {
     if (!pdfDocument) return;
-    triggerConfetti();
-    await exportToPdf(pdfDocument, canvases);
+    setIsExportModalOpen(true);
+  };
+
+  const handleExportWithQuality = async (options: ExportQualityOptions) => {
+    if (!pdfDocument) return;
+    setIsExporting(true);
+    try {
+      triggerConfetti();
+      await exportToPdf(pdfDocument, canvases, options);
+      setIsExportModalOpen(false);
+    } catch (e) {
+      console.error(e);
+      addNotification({
+        type: 'error',
+        title: 'Export Error',
+        message: 'Errore durante l\'esportazione del PDF'
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -304,6 +328,14 @@ function App() {
         onDownload={handleScannerDownload}
         previewCanvas={scannerPreview}
         isProcessing={isProcessing}
+      />
+
+      {/* Export Quality Modal */}
+      <ExportQualityModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExport={handleExportWithQuality}
+        isProcessing={isExporting}
       />
 
       {/* Notifications */}

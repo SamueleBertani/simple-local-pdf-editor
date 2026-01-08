@@ -3,39 +3,91 @@ import JSZip from 'jszip';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 /**
+ * Export quality options for controlling file size vs visual quality tradeoff.
+ */
+export interface ExportQualityOptions {
+    /** Image format: 'jpeg' for smaller files, 'png' for lossless */
+    format: 'jpeg' | 'png';
+    /** JPEG quality (0-1), only used when format is 'jpeg' */
+    quality: number;
+    /** Resolution multiplier (1 = native 72dpi, 2 = 144dpi) */
+    multiplier: number;
+    /** Display name for the preset */
+    label: string;
+    /** Description of the preset */
+    description: string;
+}
+
+/** Preset export quality configurations */
+export const EXPORT_QUALITY_PRESETS: Record<string, ExportQualityOptions> = {
+    high: {
+        format: 'png',
+        quality: 1,
+        multiplier: 2,
+        label: 'Alta',
+        description: 'Massima qualità, file più pesante'
+    },
+    medium: {
+        format: 'jpeg',
+        quality: 0.85,
+        multiplier: 1,
+        label: 'Media',
+        description: 'Buon compromesso qualità/peso'
+    },
+    low: {
+        format: 'jpeg',
+        quality: 0.65,
+        multiplier: 1,
+        label: 'Bassa',
+        description: 'File più leggero'
+    }
+};
+
+export const DEFAULT_EXPORT_QUALITY = EXPORT_QUALITY_PRESETS.high;
+
+/**
  * Exports the current PDF document and its overlay canvases to a new PDF file.
  * This process involves:
  * 1. Loading the original PDF bytes.
  * 2. Iterating through each page.
- * 3. Converting corresponding Fabric.js canvases to high-res PNGs.
- * 4. Embedding these PNGs onto the PDF pages.
+ * 3. Converting corresponding Fabric.js canvases to images (PNG or JPEG based on quality options).
+ * 4. Embedding these images onto the PDF pages.
  * 5. Saving and triggering a download of the modified PDF.
- * 
+ *
  * @param pdfProxy - The source PDF document proxy from PDF.js.
  * @param canvases - A record mapping page numbers (1-based) to Fabric.js canvas instances.
+ * @param qualityOptions - Optional quality settings for compression.
  */
 export async function exportToPdf(
     pdfProxy: PDFDocumentProxy,
-    canvases: Record<number, any>
+    canvases: Record<number, any>,
+    qualityOptions: ExportQualityOptions = DEFAULT_EXPORT_QUALITY
 ) {
     const existingPdfBytes = await pdfProxy.getData();
     // Use standard ArrayBuffer for PDFDocument.load
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
     const pages = pdfDoc.getPages();
+    const { format, quality, multiplier } = qualityOptions;
 
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
         // pageNumber is 1-based, index is 0-based
         const canvas = canvases[i + 1];
 
-        if (canvas) {
-            // Get Data URL (PNG)
-            const dataUrl = canvas.toDataURL({ format: 'png', multiplier: 2 });
-            const pngImage = await pdfDoc.embedPng(dataUrl);
+        if (canvas && canvas.getObjects().length > 0) {
+            // Get Data URL based on format
+            const dataUrl = format === 'jpeg'
+                ? canvas.toDataURL({ format: 'jpeg', quality, multiplier })
+                : canvas.toDataURL({ format: 'png', multiplier });
+
+            const image = format === 'jpeg'
+                ? await pdfDoc.embedJpg(dataUrl)
+                : await pdfDoc.embedPng(dataUrl);
+
             const { width, height } = page.getSize();
 
-            page.drawImage(pngImage, {
+            page.drawImage(image, {
                 x: 0,
                 y: 0,
                 width: width,
