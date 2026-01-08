@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { generateId } from '../utils/generateId';
 
 export type NotificationType = 'success' | 'error' | 'info';
 
@@ -10,34 +11,42 @@ export interface Notification {
     duration?: number;
 }
 
+interface InternalNotification extends Notification {
+    timeoutId?: ReturnType<typeof setTimeout>;
+}
+
 interface NotificationState {
-    notifications: Notification[];
+    notifications: InternalNotification[];
     addNotification: (notification: Omit<Notification, 'id'>) => void;
     removeNotification: (id: string) => void;
 }
 
-export const useNotificationStore = create<NotificationState>((set) => ({
+export const useNotificationStore = create<NotificationState>((set, get) => ({
     notifications: [],
 
     addNotification: (notification) => {
-        const id = Math.random().toString(36).substring(2, 9);
-        const newNotification = { ...notification, id };
+        const id = generateId();
+        let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+        if (notification.duration !== 0) {
+            timeoutId = setTimeout(() => {
+                get().removeNotification(id);
+            }, notification.duration || 5000);
+        }
+
+        const newNotification: InternalNotification = { ...notification, id, timeoutId };
 
         set((state) => ({
             notifications: [...state.notifications, newNotification]
         }));
-
-        // Auto remove
-        if (notification.duration !== 0) {
-            setTimeout(() => {
-                set((state) => ({
-                    notifications: state.notifications.filter(n => n.id !== id)
-                }));
-            }, notification.duration || 5000);
-        }
     },
 
     removeNotification: (id) => {
+        const notification = get().notifications.find(n => n.id === id);
+        if (notification?.timeoutId) {
+            clearTimeout(notification.timeoutId);
+        }
+
         set((state) => ({
             notifications: state.notifications.filter(n => n.id !== id)
         }));
