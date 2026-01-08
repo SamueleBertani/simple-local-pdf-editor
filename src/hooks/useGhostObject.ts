@@ -82,12 +82,12 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             ghostObj.current = text;
             checkAndAddGhost();
         } else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
-            FabricImage.fromURL(pendingImage).then((img) => {
+            const imageUrl = pendingImage; // Capture for use in async callback
+            FabricImage.fromURL(imageUrl).then((img) => {
                 if (!activeTool.match(/image|stamp|handwriting/)) return;
                 if (isInteracting.current) return;
 
-                // @ts-ignore
-                const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[pendingImage] : null;
+                const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[imageUrl] : null;
 
                 img.set({
                     opacity: 0.5,

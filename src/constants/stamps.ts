@@ -1,8 +1,5 @@
-// @ts-ignore
 import SamueleFirma from '../assets/SamueleFirma.png';
-// @ts-ignore
 import MontuFirma from '../assets/MontuFirma.png';
-// @ts-ignore
 import TimbroIndici from '../assets/timbroIndici.png';
 
 export const STAMPS = [

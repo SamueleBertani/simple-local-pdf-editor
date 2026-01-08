@@ -1,5 +1,4 @@
 import * as opentype from 'opentype.js';
-// @ts-ignore
 import fontUrl from '../../assets/Caveat-Regular.ttf';
 
 let cachedFont: opentype.Font | null = null;

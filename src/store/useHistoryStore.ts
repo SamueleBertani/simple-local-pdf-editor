@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { usePDFStore } from './usePDFStore';
 import * as fabric from 'fabric';
-import type { SerializedFabricObject } from '../types';
+import type { SerializedFabricObject, CustomFabricObject } from '../types';
 
 export type ActionType = 'add' | 'remove' | 'modify';
 
@@ -98,10 +98,9 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
 }));
 
 // Helper to find an object on a canvas by its custom ID property
-function FindObjectById(canvas: any, id?: string) {
-    if (!id) return null;
-    // @ts-ignore
-    return canvas.getObjects().find(o => o.id === id);
+function FindObjectById(canvas: fabric.Canvas, id?: string): CustomFabricObject | undefined {
+    if (!id) return undefined;
+    return (canvas.getObjects() as CustomFabricObject[]).find(o => o.id === id);
 }
 
 // ... existing applies ...

@@ -80,10 +80,10 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
 
             // Image/Stamp placement (still here for now)
             if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
-                FabricImage.fromURL(pendingImage).then((img) => {
+                const imageUrl = pendingImage; // Capture for use in async callback
+                FabricImage.fromURL(imageUrl).then((img) => {
                     // Check for stored scale if it's a stamp
-                    // @ts-ignore
-                    const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[pendingImage] : null;
+                    const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[imageUrl] : null;
 
                     img.set({
                         left: pointer.x, top: pointer.y,
@@ -91,7 +91,7 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                         scaleX: storedScale?.scaleX ?? 0.5,
                         scaleY: storedScale?.scaleY ?? 0.5,
                         data: {
-                            stampUrl: activeTool === 'stamp' ? pendingImage : undefined
+                            stampUrl: activeTool === 'stamp' ? imageUrl : undefined
                         }
                     });
                     fabricCanvas.add(img);
