@@ -76,9 +76,7 @@ export function useShortcuts() {
                         });
 
                         // New ID for pasted object
-                        if (obj.id || clipboard.id) {
-                            obj.set('id', Math.random().toString(36).substr(2, 9));
-                        }
+                        obj.set('id', Math.random().toString(36).substring(2, 11));
 
                         canvas.add(obj);
                         canvas.setActiveObject(obj);
@@ -89,7 +87,38 @@ export function useShortcuts() {
             }
 
             // ----------------------------------------------------------------
-            // 4. Tool Management (Escape)
+            // 4. Duplicate (Ctrl + D)
+            // ----------------------------------------------------------------
+            if (isCmdOrCtrl && e.key === 'd') {
+                e.preventDefault();
+                // Find active object
+                for (const canvas of Object.values(canvases)) {
+                    const activeObject = canvas.getActiveObject();
+                    if (activeObject) {
+                        activeObject.clone()
+                            .then((cloned: any) => {
+                                cloned.set({
+                                    left: activeObject.left! + 20,
+                                    top: activeObject.top! + 20,
+                                    evented: true,
+                                    id: Math.random().toString(36).substring(2, 11),
+                                });
+
+                                canvas.add(cloned);
+                                canvas.setActiveObject(cloned);
+                                canvas.requestRenderAll();
+                            })
+                            .catch((err: Error) => {
+                                console.error('Failed to duplicate object:', err);
+                            });
+                        break;
+                    }
+                }
+                return;
+            }
+
+            // ----------------------------------------------------------------
+            // 5. Tool Management (Escape)
             // ----------------------------------------------------------------
             const isEscape = e.key === 'Escape';
             if (isEscape) {
@@ -98,7 +127,7 @@ export function useShortcuts() {
             }
 
             // ----------------------------------------------------------------
-            // 5. Canvas-Specific Actions (Delete, Move)
+            // 6. Canvas-Specific Actions (Delete, Move)
             // ----------------------------------------------------------------
             if (Object.keys(canvases).length === 0) return;
 
