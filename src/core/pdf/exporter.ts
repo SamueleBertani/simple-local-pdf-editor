@@ -46,6 +46,16 @@ export const EXPORT_QUALITY_PRESETS: Record<string, ExportQualityOptions> = {
 
 export const DEFAULT_EXPORT_QUALITY = EXPORT_QUALITY_PRESETS.medium;
 
+/** Result of PDF export with size information */
+export interface ExportResult {
+    /** Original file size in bytes */
+    originalSize: number;
+    /** Exported file size in bytes */
+    exportedSize: number;
+    /** Size difference percentage (negative = smaller, positive = larger) */
+    percentChange: number;
+}
+
 /**
  * Exports the current PDF document and its overlay canvases to a new PDF file.
  * This process involves:
@@ -58,13 +68,16 @@ export const DEFAULT_EXPORT_QUALITY = EXPORT_QUALITY_PRESETS.medium;
  * @param pdfProxy - The source PDF document proxy from PDF.js.
  * @param canvases - A record mapping page numbers (1-based) to Fabric.js canvas instances.
  * @param qualityOptions - Optional quality settings for compression.
+ * @returns Export result with file size information.
  */
 export async function exportToPdf(
     pdfProxy: PDFDocumentProxy,
     canvases: Record<number, Canvas>,
     qualityOptions: ExportQualityOptions = DEFAULT_EXPORT_QUALITY
-) {
+): Promise<ExportResult> {
     const existingPdfBytes = await pdfProxy.getData();
+    const originalSize = existingPdfBytes.byteLength;
+
     // Use standard ArrayBuffer for PDFDocument.load
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
@@ -98,8 +111,13 @@ export async function exportToPdf(
     }
 
     const pdfBytes = await pdfDoc.save();
+    const exportedSize = pdfBytes.byteLength;
+    const percentChange = ((exportedSize - originalSize) / originalSize) * 100;
+
     // Cast to any to bypass strict BlobPart check if typed array mismatch occurs
     downloadFile(new Blob([pdfBytes as any], { type: 'application/pdf' }), 'edited_document.pdf');
+
+    return { originalSize, exportedSize, percentChange };
 }
 
 import { applyScannerEffect } from '../image/scannerEffect';

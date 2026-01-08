@@ -148,13 +148,31 @@ function App() {
     setIsExportModalOpen(true);
   };
 
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
   const handleExportWithQuality = async (options: ExportQualityOptions) => {
     if (!pdfDocument) return;
     setIsExporting(true);
     try {
       triggerConfetti();
-      await exportToPdf(pdfDocument, canvases, options);
+      const result = await exportToPdf(pdfDocument, canvases, options);
       setIsExportModalOpen(false);
+
+      // Show size comparison notification
+      const originalFormatted = formatFileSize(result.originalSize);
+      const exportedFormatted = formatFileSize(result.exportedSize);
+      const changeSign = result.percentChange >= 0 ? '+' : '';
+      const changeText = `${changeSign}${result.percentChange.toFixed(1)}%`;
+
+      addNotification({
+        type: result.percentChange <= 0 ? 'success' : 'info',
+        title: 'PDF Exported',
+        message: `${originalFormatted} → ${exportedFormatted} (${changeText})`
+      });
     } catch (e) {
       console.error(e);
       addNotification({
