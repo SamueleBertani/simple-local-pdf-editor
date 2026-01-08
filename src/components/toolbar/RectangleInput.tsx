@@ -1,17 +1,17 @@
 import { useToolStore } from '../../store/useToolStore';
 import { ColorPicker } from './ColorPicker';
 
-export function RectangleInput() {
-    const { activeTool, toolSettings, setToolSettings } = useToolStore();
+const RECTANGLE_COLORS = ['#FFFFFF', '#000000', '#F3F4F6', '#EF4444', '#3B82F6', '#F59E0B'] as const;
 
-    if (activeTool !== 'rectangle') return null;
+export function RectangleInput() {
+    const { toolSettings, setToolSettings } = useToolStore();
 
     return (
         <div className="w-full flex flex-col gap-6">
             <div className="space-y-6">
                 <ColorPicker
                     label="Fill Color"
-                    colors={['#FFFFFF', '#000000', '#F3F4F6', '#EF4444', '#3B82F6', '#F59E0B']}
+                    colors={RECTANGLE_COLORS}
                     value={toolSettings.color}
                     onChange={(color) => setToolSettings({ color })}
                 />

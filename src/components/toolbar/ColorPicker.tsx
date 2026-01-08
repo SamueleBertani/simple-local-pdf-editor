@@ -1,14 +1,15 @@
+import { memo } from 'react';
 import { clsx } from 'clsx';
 import { Check } from 'lucide-react';
 
 interface ColorPickerProps {
-    colors: string[];
+    colors: readonly string[];
     value: string;
     onChange: (color: string) => void;
     label?: string;
 }
 
-export function ColorPicker({ colors, value, onChange, label = "Color" }: ColorPickerProps) {
+export const ColorPicker = memo(function ColorPicker({ colors, value, onChange, label = "Color" }: ColorPickerProps) {
     return (
         <div>
             <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">{label}</label>
@@ -38,4 +39,4 @@ export function ColorPicker({ colors, value, onChange, label = "Color" }: ColorP
             </div>
         </div>
     );
-}
+});

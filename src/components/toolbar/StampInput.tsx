@@ -2,9 +2,7 @@ import { useToolStore } from '../../store/useToolStore';
 import { STAMPS } from '../../constants/stamps';
 
 export function StampInput() {
-    const { activeTool, setPendingImage, pendingImage } = useToolStore();
-
-    if (activeTool !== 'stamp') return null;
+    const { setPendingImage, pendingImage } = useToolStore();
 
     return (
         <div className="w-full flex flex-col gap-6">

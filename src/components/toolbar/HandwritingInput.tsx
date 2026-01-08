@@ -4,8 +4,10 @@ import { generateHandwriting } from '../../core/handwriting/generator';
 import { Shuffle } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 
+const INK_COLORS = ['#000000', '#374151', '#6b7280', '#9ca3af', '#EF4444', '#3B82F6'] as const;
+
 export function HandwritingInput() {
-    const { activeTool, pendingImage, setPendingImage } = useToolStore();
+    const { pendingImage, setPendingImage } = useToolStore();
     const [text, setText] = useState('');
     const [color, setColor] = useState('#000000');
     const [strokeWidth, setStrokeWidth] = useState(1);
@@ -14,8 +16,6 @@ export function HandwritingInput() {
 
     // Auto-generate on change
     useEffect(() => {
-        if (activeTool !== 'handwriting') return;
-
         const generate = async () => {
             if (!text) {
                 setPendingImage(null);
@@ -31,11 +31,7 @@ export function HandwritingInput() {
 
         const timer = setTimeout(generate, 200); // Debounce
         return () => clearTimeout(timer);
-    }, [text, color, strokeWidth, randomness, seed, setPendingImage, activeTool]);
-
-    if (activeTool !== 'handwriting') return null;
-
-    const colors = ['#000000', '#374151', '#6b7280', '#9ca3af', '#EF4444', '#3B82F6'];
+    }, [text, color, strokeWidth, randomness, seed, setPendingImage]);
 
     return (
         <div className="w-full flex flex-col gap-6">
@@ -70,7 +66,7 @@ export function HandwritingInput() {
                 {/* Color Selection */}
                 <ColorPicker
                     label="Ink Color"
-                    colors={colors}
+                    colors={INK_COLORS}
                     value={color}
                     onChange={setColor}
                 />

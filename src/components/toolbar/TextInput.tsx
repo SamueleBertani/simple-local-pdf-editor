@@ -1,10 +1,10 @@
 import { useToolStore } from '../../store/useToolStore';
 import { ColorPicker } from './ColorPicker';
 
-export function TextInput() {
-    const { activeTool, toolSettings, setToolSettings } = useToolStore();
+const TEXT_COLORS = ['#000000', '#EF4444', '#3B82F6', '#10B981', '#FFFFFF', '#6B7280'] as const;
 
-    if (activeTool !== 'text') return null;
+export function TextInput() {
+    const { toolSettings, setToolSettings } = useToolStore();
 
     return (
         <div className="w-full flex flex-col gap-6">
@@ -25,7 +25,7 @@ export function TextInput() {
                 </div>
 
                 <ColorPicker
-                    colors={['#000000', '#EF4444', '#3B82F6', '#10B981', '#FFFFFF', '#6B7280']}
+                    colors={TEXT_COLORS}
                     value={toolSettings.color}
                     onChange={(color) => setToolSettings({ color })}
                 />
