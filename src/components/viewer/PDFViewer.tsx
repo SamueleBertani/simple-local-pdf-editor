@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { usePDFStore } from '../../store/usePDFStore';
 import { PDFPage } from './PDFPage';
 import { Loader2 } from 'lucide-react';
@@ -13,12 +13,23 @@ export function PDFViewer() {
     const [loading, setLoading] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
+    /**
+     * Calculate optimal scale based on container width (90% to ensure margins)
+     */
+    const calculateOptimalScale = useCallback(() => {
+        if (!containerRef.current || pages.length === 0) return;
+
+        const containerWidth = containerRef.current.clientWidth;
+        const firstPage = pages[0];
+        const viewport = firstPage.getViewport({ scale: 1 });
+        const newScale = (containerWidth * 0.9) / viewport.width;
+        setScale(newScale);
+    }, [pages, setScale]);
+
+    // Load PDF pages
     useEffect(() => {
         const loadPages = async () => {
             if (!pdfDocument) return;
-
-            // Capture container width before potential re-renders
-            const containerWidth = containerRef.current?.clientWidth;
 
             setLoading(true);
 
@@ -28,21 +39,28 @@ export function PDFViewer() {
                 loadedPages.push(page);
             }
 
-            // Calculate initial scale to fit with padding (90% width)
-            if (containerWidth && loadedPages.length > 0) {
-                const firstPage = loadedPages[0];
-                const viewport = firstPage.getViewport({ scale: 1 });
-                // 90% width to ensure visible margins
-                const newScale = (containerWidth * 0.9) / viewport.width;
-                setScale(newScale);
-            }
-
             setPages(loadedPages);
             setLoading(false);
         };
 
         loadPages();
-    }, [pdfDocument, setScale]);
+    }, [pdfDocument]);
+
+    // Calculate initial scale and handle resize
+    useEffect(() => {
+        if (pages.length === 0) return;
+
+        // Calculate initial scale
+        calculateOptimalScale();
+
+        // Handle window resize
+        const handleResize = () => {
+            calculateOptimalScale();
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [pages, calculateOptimalScale]);
 
     if (!pdfDocument) {
         return (

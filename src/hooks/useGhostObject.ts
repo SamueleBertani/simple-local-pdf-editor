@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { Canvas, FabricImage, IText } from 'fabric';
 import { useToolStore } from '../store/useToolStore';
 import type { ToolType } from '../store/useToolStore';
+import { useIsMobile } from './useIsMobile';
 
 interface UseGhostObjectProps {
     fabricCanvas: Canvas | null;
@@ -20,6 +21,7 @@ interface UseGhostObjectProps {
  * - Hiding the ghost during interactions or when leaving the canvas.
  */
 export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pendingImage }: UseGhostObjectProps) {
+    const isMobile = useIsMobile();
     const ghostObj = useRef<any>(null);
     const isInteracting = useRef(false);
     const isMouseOver = useRef(false);
@@ -49,7 +51,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
         if (!fabricCanvas) return;
 
         // Disable ghost on mobile
-        if (window.innerWidth < 768) {
+        if (isMobile) {
             if (ghostObj.current) {
                 fabricCanvas.remove(ghostObj.current);
                 ghostObj.current = null;
@@ -101,7 +103,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                 checkAndAddGhost();
             });
         }
-    }, [fabricCanvas, activeTool, toolSettings, pendingImage, checkAndAddGhost]);
+    }, [fabricCanvas, activeTool, toolSettings, pendingImage, checkAndAddGhost, isMobile]);
 
     useEffect(() => {
         if (!fabricCanvas) return;
@@ -109,7 +111,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
         updateGhost();
 
         const handleMouseMove = (opt: any) => {
-            if (window.innerWidth < 768) return;
+            if (isMobile) return;
 
             const pointer = fabricCanvas.getPointer(opt.e);
             lastPointer.current = { x: pointer.x, y: pointer.y };
@@ -218,5 +220,5 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             }
             window.removeEventListener('mouseup', handleGlobalMouseUp);
         };
-    }, [fabricCanvas, updateGhost]);
+    }, [fabricCanvas, updateGhost, isMobile]);
 }

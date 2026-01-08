@@ -139,14 +139,18 @@ function App() {
         {/* Mobile Header */}
         {pdfDocument && (
           <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 z-20">
-            <button onClick={toggleTheme} className="p-2 text-slate-600 dark:text-slate-400">
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-slate-600 dark:text-slate-400"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <div className="flex items-center gap-2">
               <button
                 onClick={startScannerFlow}
-                disabled={!pdfDocument}
                 className="flex items-center gap-1 p-2 text-slate-700 dark:text-slate-300 font-medium text-sm bg-slate-100 dark:bg-slate-800 rounded-lg"
+                aria-label="Export as scanned images"
               >
                 <Scan className="w-4 h-4" />
                 Scan
@@ -154,6 +158,7 @@ function App() {
               <button
                 onClick={handleExportPDF}
                 className="flex items-center gap-1 p-2 text-white font-medium text-sm bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm"
+                aria-label="Save PDF"
               >
                 <Download className="w-4 h-4" />
                 Save
