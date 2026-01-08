@@ -30,7 +30,7 @@ export function MobileSettingsDrawer() {
             {/* Drawer */}
             <div
                 className={clsx(
-                    "fixed bottom-0 left-0 right-0 z-50 flex flex-col max-h-[50vh] transition-transform duration-300 ease-out md:hidden shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]",
+                    "fixed bottom-0 left-0 right-0 z-50 flex flex-col max-h-[85vh] transition-transform duration-300 ease-out md:hidden shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]",
                     isVisible ? "translate-y-0" : "translate-y-full"
                 )}
             >
