@@ -30,8 +30,6 @@ export function ColorPicker({ colors, value, onChange, label = "Color" }: ColorP
                     >
                         {value === c && (
                             <Check className={clsx("w-4 h-4",
-                                // Invert icon color based on background logic usually, but keep simple for now
-                                // or use drop-shadow. 
                                 c === '#FFFFFF' ? "text-indigo-600" : "text-white drop-shadow-sm"
                             )} />
                         )}

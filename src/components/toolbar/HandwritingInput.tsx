@@ -68,7 +68,6 @@ export function HandwritingInput() {
 
             <div className="space-y-6">
                 {/* Color Selection */}
-                {/* Color Selection */}
                 <ColorPicker
                     label="Ink Color"
                     colors={colors}
