@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Canvas } from 'fabric';
 import { useHistoryStore } from '../store/useHistoryStore';
-
-// Simple ID generator if uuid not available
-const generateId = () => Math.random().toString(36).substr(2, 9);
+import { generateId } from '../utils/generateId';
 
 export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
     const { addToHistory, isUndoRedoOperation } = useHistoryStore();

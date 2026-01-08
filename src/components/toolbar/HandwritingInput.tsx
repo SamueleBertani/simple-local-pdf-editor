@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useToolStore } from '../../store/useToolStore';
 import { generateHandwriting } from '../../core/handwriting/generator';
 import { Shuffle } from 'lucide-react';
+import { ColorPicker } from './ColorPicker';
 
 export function HandwritingInput() {
     const { activeTool, pendingImage, setPendingImage } = useToolStore();
@@ -67,23 +68,13 @@ export function HandwritingInput() {
 
             <div className="space-y-6">
                 {/* Color Selection */}
-                <div>
-                    <label className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 block">Ink Color</label>
-                    <div className="flex gap-2 flex-wrap">
-                        {colors.map((c) => (
-                            <button
-                                key={c}
-                                onClick={() => setColor(c)}
-                                className={`w-8 h-8 rounded-full border-2 transition-all ${color === c
-                                    ? 'border-indigo-600 scale-110 ring-2 ring-indigo-100'
-                                    : 'border-transparent hover:scale-105'
-                                    }`}
-                                style={{ backgroundColor: c }}
-                                title={c}
-                            />
-                        ))}
-                    </div>
-                </div>
+                {/* Color Selection */}
+                <ColorPicker
+                    label="Ink Color"
+                    colors={colors}
+                    value={color}
+                    onChange={setColor}
+                />
 
                 {/* Stroke Width Slider */}
                 <div>

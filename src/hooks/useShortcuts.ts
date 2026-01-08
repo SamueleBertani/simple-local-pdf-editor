@@ -4,6 +4,7 @@ import { usePDFStore } from '../store/usePDFStore';
 import { useHistoryStore } from '../store/useHistoryStore';
 import { useClipboardStore } from '../store/useClipboardStore';
 import { useToolStore } from '../store/useToolStore';
+import { generateId } from '../utils/generateId';
 
 export function useShortcuts() {
     const { canvases } = usePDFStore();

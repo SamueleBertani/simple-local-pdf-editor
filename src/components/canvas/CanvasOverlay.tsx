@@ -6,6 +6,7 @@ import { usePDFStore } from '../../store/usePDFStore';
 import { useCanvasHistory } from '../../hooks/useCanvasHistory';
 import { useClipboardStore } from '../../store/useClipboardStore';
 import { useGhostObject } from '../../hooks/useGhostObject';
+import { generateId } from '../../utils/generateId';
 
 interface CanvasOverlayProps {
     width: number;
@@ -191,7 +192,7 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                             });
 
                             if (cloned.id) {
-                                cloned.set('id', Math.random().toString(36).substr(2, 9));
+                                cloned.set('id', generateId());
                             }
 
                             targetCanvas.add(cloned);

@@ -1,4 +1,5 @@
 import { useToolStore } from '../../store/useToolStore';
+import { ColorPicker } from './ColorPicker';
 
 export function TextInput() {
     const { activeTool, toolSettings, setToolSettings } = useToolStore();
@@ -23,22 +24,11 @@ export function TextInput() {
                     </div>
                 </div>
 
-                <div>
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Color</label>
-                    <div className="flex gap-3 flex-wrap">
-                        {['#000000', '#EF4444', '#3B82F6', '#10B981', '#FFFFFF'].map((c) => (
-                            <button
-                                key={c}
-                                onClick={() => setToolSettings({ color: c })}
-                                className={`w-10 h-10 rounded-full border-2 transition-all shadow-sm ${toolSettings.color === c
-                                    ? 'border-indigo-600 scale-110 ring-2 ring-100'
-                                    : 'border-transparent dark:border-slate-700 hover:scale-105'
-                                    }`}
-                                style={{ backgroundColor: c }}
-                            />
-                        ))}
-                    </div>
-                </div>
+                <ColorPicker
+                    colors={['#000000', '#EF4444', '#3B82F6', '#10B981', '#FFFFFF', '#6B7280']}
+                    value={toolSettings.color}
+                    onChange={(color) => setToolSettings({ color })}
+                />
 
                 <div>
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Font Family</label>
