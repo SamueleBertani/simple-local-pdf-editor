@@ -10,15 +10,24 @@ import { clsx } from 'clsx';
  * 
  * Manages the active tool state in `useToolStore`.
  */
-export function Toolbar() {
-    const { activeTool, setActiveTool, setPendingImage } = useToolStore();
+interface ToolbarProps {
+    orientation?: 'vertical' | 'horizontal';
+}
+
+export function Toolbar({ orientation = 'vertical' }: ToolbarProps) {
+    const { activeTool, setActiveTool, setPendingImage, toggleSettings } = useToolStore();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleToolClick = (tool: ToolType) => {
         if (tool === 'image') {
             fileInputRef.current?.click();
         } else {
-            setActiveTool(tool);
+            if (activeTool === tool) {
+                // If clicking active tool, toggle settings drawer
+                toggleSettings();
+            } else {
+                setActiveTool(tool);
+            }
         }
     };
 
@@ -27,14 +36,15 @@ export function Toolbar() {
             onClick={() => handleToolClick(tool)}
             title={title}
             className={clsx(
-                "flex items-center gap-3 w-full p-3 rounded-lg transition-colors text-left",
+                "flex items-center gap-3 p-3 rounded-lg transition-colors text-left shrink-0",
+                orientation === 'vertical' ? "w-full" : "flex-1 justify-center flex-col gap-1 p-2",
                 activeTool === tool
                     ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium shadow-sm ring-1 ring-indigo-200 dark:ring-indigo-800"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400"
             )}
         >
             <Icon className={clsx("w-5 h-5", activeTool === tool && "fill-indigo-100")} />
-            <span className="text-sm">{label}</span>
+            <span className={clsx("text-sm", orientation === 'horizontal' && "text-[10px]")}>{label}</span>
         </button>
     );
 
@@ -52,9 +62,12 @@ export function Toolbar() {
     };
 
     return (
-        <div className="flex flex-col gap-2 w-full px-4 relative">
+        <div className={clsx(
+            "flex w-full px-4 relative",
+            orientation === 'vertical' ? "flex-col gap-2" : "flex-row gap-2 overflow-x-auto no-scrollbar py-2"
+        )}>
             <ToolBtn tool="select" icon={MousePointer2} label="Select" title="Select (S)" />
-            <ToolBtn tool="handwriting" icon={Pen} label="Handwriting" title="Handwriting (H)" />
+            <ToolBtn tool="handwriting" icon={Pen} label="Sign" title="Handwriting (H)" />
             <ToolBtn tool="text" icon={Type} label="Text" title="Text (T)" />
             <ToolBtn tool="rectangle" icon={Square} label="Cover" title="Cover (R)" />
             <ToolBtn tool="image" icon={ImageIcon} label="Image" title="Image (I)" />

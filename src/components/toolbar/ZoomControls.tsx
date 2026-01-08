@@ -22,7 +22,7 @@ export function ZoomControls() {
     };
 
     return (
-        <div className="fixed bottom-6 right-6 flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-lg shadow-xl z-50">
+        <div className="fixed bottom-24 right-4 md:bottom-8 md:right-8 flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-lg shadow-xl z-50">
             <button
                 onClick={handleZoomOut}
                 aria-label="Zoom out"

@@ -2,6 +2,12 @@ import { create } from 'zustand';
 
 export type ToolType = 'select' | 'handwriting' | 'image' | 'stamp' | 'text' | 'rectangle';
 
+/** Tools that have a settings panel */
+const TOOLS_WITH_SETTINGS: ToolType[] = ['handwriting', 'text', 'rectangle', 'stamp'];
+
+/** Check if a tool has settings */
+export const hasToolSettings = (tool: ToolType): boolean => TOOLS_WITH_SETTINGS.includes(tool);
+
 interface ToolState {
     activeTool: ToolType;
     pendingImage: string | null;
@@ -19,6 +25,11 @@ interface ToolState {
     // Stamp scaling persistence
     stampScales: Record<string, { scaleX: number; scaleY: number }>;
     setStampScale: (url: string, scale: { scaleX: number; scaleY: number }) => void;
+
+    // Mobile Settings Drawer State
+    isSettingsOpen: boolean;
+    setSettingsOpen: (isOpen: boolean) => void;
+    toggleSettings: () => void;
 }
 
 /**
@@ -35,7 +46,9 @@ export const useToolStore = create<ToolState>((set) => ({
         fontFamily: 'sans-serif',
     },
     stampScales: {},
-    setActiveTool: (tool) => set({ activeTool: tool }),
+    isSettingsOpen: false, // Default closed
+
+    setActiveTool: (tool) => set({ activeTool: tool, isSettingsOpen: true }), // Auto-open settings on tool change
     setPendingImage: (image) => set({ pendingImage: image }),
     setToolSettings: (settings) =>
         set((state) => ({ toolSettings: { ...state.toolSettings, ...settings } })),
@@ -46,4 +59,6 @@ export const useToolStore = create<ToolState>((set) => ({
                 [url]: scale
             }
         })),
+    setSettingsOpen: (isOpen) => set({ isSettingsOpen: isOpen }),
+    toggleSettings: () => set((state) => ({ isSettingsOpen: !state.isSettingsOpen })),
 }));

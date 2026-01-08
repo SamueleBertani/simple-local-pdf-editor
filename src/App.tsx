@@ -11,10 +11,11 @@ import { useShortcuts } from './hooks/useShortcuts';
 import { exportToPdf, exportToImages, renderPageToCanvas } from './core/pdf/exporter';
 import { ScannerEffectModal } from './components/modals/ScannerEffectModal';
 import { clsx } from 'clsx';
-import { useToolStore } from './store/useToolStore';
+import { useToolStore, hasToolSettings } from './store/useToolStore';
 import confetti from 'canvas-confetti';
 import { useTheme } from './hooks/useTheme';
 import { ZoomControls } from './components/toolbar/ZoomControls';
+import { MobileSettingsDrawer } from './components/mobile/MobileSettingsDrawer';
 import { MIN_SCALE, MAX_SCALE, WHEEL_SENSITIVITY } from './constants/zoom';
 
 function App() {
@@ -135,9 +136,24 @@ function App() {
     <div className="h-screen w-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden text-slate-900 dark:text-slate-100 font-sans">
       {/* Main Content */}
       <main className="flex-1 flex overflow-hidden relative">
-        {/* Sidebar */}
+        {/* Mobile Header */}
         {pdfDocument && (
-          <div className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
+          <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 z-20">
+            <span className="font-bold text-slate-800 dark:text-slate-100">PDF Editor</span>
+            <div className="flex items-center gap-2">
+              <button onClick={toggleTheme} className="p-2 text-slate-600 dark:text-slate-400">
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button onClick={handleExportPDF} className="p-2 text-indigo-600 dark:text-indigo-400 font-medium text-sm">
+                Save
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Sidebar (Desktop Only) */}
+        {pdfDocument && (
+          <div className="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
             {/* Tools */}
             <Toolbar />
 
@@ -189,7 +205,7 @@ function App() {
         )}
 
         {/* Viewer */}
-        <div className="flex-1 flex flex-col relative bg-slate-100 dark:bg-slate-950/50 min-w-0">
+        <div className={clsx("flex-1 flex flex-col relative bg-slate-100 dark:bg-slate-950/50 min-w-0 transition-all", pdfDocument ? "pt-14 pb-20 md:pt-0 md:pb-0" : "")}>
           {!pdfDocument ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
               <div className="flex flex-col items-center gap-4 mb-8">
@@ -235,12 +251,24 @@ function App() {
           )}
         </div>
 
-        {/* Right Sidebar (Tool Settings) */}
-        <SettingsSidebar
-          activeTool={activeTool}
-          visible={!!pdfDocument && (activeTool === 'handwriting' || activeTool === 'text' || activeTool === 'rectangle' || activeTool === 'stamp')}
-        />
+        {/* Right Sidebar (Desktop Only) */}
+        <div className="hidden md:block h-full">
+          <SettingsSidebar
+            activeTool={activeTool}
+            visible={!!pdfDocument && hasToolSettings(activeTool)}
+          />
+        </div>
       </main>
+
+      {/* Mobile Bottom Toolbar */}
+      {pdfDocument && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-30 pb-safe">
+          <Toolbar orientation="horizontal" />
+        </div>
+      )}
+
+      {/* Mobile Settings Drawer */}
+      <MobileSettingsDrawer />
 
       {/* Scanner Effect Modal */}
       <ScannerEffectModal
