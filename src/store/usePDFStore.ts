@@ -5,7 +5,7 @@ interface PDFState {
     pdfDocument: pdfjsLib.PDFDocumentProxy | null;
     pages: { viewport: pdfjsLib.PageViewport; pageNumber: number }[];
     scale: number;
-    canvases: Record<number, any>; // using any for fabric.Canvas to avoid circular dep or complex types here
+    canvases: Record<number, any>; // Keeping Record, but values should be treated as Canvas
     setPdfDocument: (doc: pdfjsLib.PDFDocumentProxy | null) => void;
     setPages: (pages: { viewport: pdfjsLib.PageViewport; pageNumber: number }[]) => void;
     setScale: (scale: number) => void;

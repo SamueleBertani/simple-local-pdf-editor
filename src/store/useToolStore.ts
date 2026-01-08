@@ -11,13 +11,12 @@ export const hasToolSettings = (tool: ToolType): boolean => TOOLS_WITH_SETTINGS.
 interface ToolState {
     activeTool: ToolType;
     pendingImage: string | null;
-    toolSettings: {
-        color: string;
-        width: number;
-        opacity: number;
-        fontSize: number;
-        fontFamily: string;
-    };
+import { ToolSettings } from '../types';
+
+interface ToolState {
+    activeTool: ToolType;
+    pendingImage: string | null;
+    toolSettings: ToolSettings;
     setActiveTool: (tool: ToolType) => void;
     setPendingImage: (image: string | null) => void;
     setToolSettings: (settings: Partial<ToolState['toolSettings']>) => void;

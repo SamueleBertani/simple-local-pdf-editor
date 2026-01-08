@@ -1,9 +1,10 @@
 import { create } from 'zustand';
+import { SerializedFabricObject } from '../types';
 
 interface ClipboardState {
-    clipboard: any | null; // Serialized Fabric object
-    lastActivePageIndex: number | null;
-    setClipboard: (obj: any | null) => void;
+    clipboard: SerializedFabricObject | null; // Serialized Fabric object
+    lastActivePageIndex: number | undefined;
+    setClipboard: (obj: SerializedFabricObject | null) => void;
     setLastActivePageIndex: (index: number) => void;
 }
 

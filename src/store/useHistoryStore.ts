@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 import { usePDFStore } from './usePDFStore';
 import * as fabric from 'fabric';
+import { SerializedFabricObject } from '../types';
 
-export type HistoryActionType = 'add' | 'remove' | 'modify';
+export type ActionType = 'add' | 'remove' | 'modify';
 
 export interface HistoryAction {
-    type: HistoryActionType;
+    type: ActionType;
     pageIndex: number;
-    objectId?: string;
-    data: any; // Serialized object
-    previousData?: any; // For modify
+    objectId: string;
+    data: SerializedFabricObject; // Serialized object
+    previousData?: SerializedFabricObject; // For modify
 }
 
 interface HistoryState {
