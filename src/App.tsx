@@ -17,12 +17,15 @@ import { useTheme } from './hooks/useTheme';
 import { ZoomControls } from './components/toolbar/ZoomControls';
 import { MobileSettingsDrawer } from './components/mobile/MobileSettingsDrawer';
 import { MIN_SCALE, MAX_SCALE, WHEEL_SENSITIVITY } from './constants/zoom';
+import { NotificationContainer } from './components/ui/NotificationContainer';
+import { useNotificationStore } from './store/useNotificationStore';
 
 function App() {
   const { setPdfDocument, pdfDocument, canvases, scale, setScale } = usePDFStore();
   const { activeTool } = useToolStore();
   const [isDragging, setIsDragging] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { addNotification } = useNotificationStore();
   useShortcuts();
 
   // Keep scale in ref to avoid re-registering wheel listener on every scale change
@@ -48,7 +51,11 @@ function App() {
 
   const loadFile = async (file: File) => {
     if (file.type !== 'application/pdf') {
-      alert('Please upload a valid PDF file');
+      addNotification({
+        type: 'error',
+        title: 'Invalid File',
+        message: 'Please upload a valid PDF file'
+      });
       return;
     }
 
@@ -120,7 +127,11 @@ function App() {
       setIsScannerOpen(false);
     } catch (e) {
       console.error(e);
-      alert('Error creating scan');
+      addNotification({
+        type: 'error',
+        title: 'Scan Error',
+        message: 'Error creating scan'
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -294,6 +305,9 @@ function App() {
         previewCanvas={scannerPreview}
         isProcessing={isProcessing}
       />
+
+      {/* Notifications */}
+      <NotificationContainer />
     </div>
   );
 }

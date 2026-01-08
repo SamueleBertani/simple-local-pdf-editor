@@ -9,6 +9,7 @@ import { useGhostObject } from '../../hooks/useGhostObject';
 import { RectangleDrawingHandler } from './handlers/RectangleDrawingHandler';
 import { TextCreationHandler } from './handlers/TextCreationHandler';
 import { ObjectDragDropHandler } from './handlers/ObjectDragDropHandler';
+import { useNotificationStore } from '../../store/useNotificationStore';
 
 interface CanvasOverlayProps {
     width: number;
@@ -97,7 +98,11 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                     fabricCanvas.setActiveObject(img);
                 }).catch(err => {
                     console.error("Error loading image", err);
-                    alert('Failed to load image. Please try again.');
+                    useNotificationStore.getState().addNotification({
+                        type: 'error',
+                        title: 'Image Load Error',
+                        message: 'Failed to load image. Please try again.'
+                    });
                 });
             }
         };
