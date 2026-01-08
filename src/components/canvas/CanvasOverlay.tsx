@@ -1,12 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
-import { FabricImage, Rect, IText } from 'fabric';
+import { useEffect, useState } from 'react';
+import { FabricImage } from 'fabric';
 import { useFabric } from '../../hooks/useFabric';
 import { useToolStore } from '../../store/useToolStore';
 import { usePDFStore } from '../../store/usePDFStore';
 import { useCanvasHistory } from '../../hooks/useCanvasHistory';
 import { useClipboardStore } from '../../store/useClipboardStore';
 import { useGhostObject } from '../../hooks/useGhostObject';
-import { generateId } from '../../utils/generateId';
+import { RectangleDrawingHandler } from './handlers/RectangleDrawingHandler';
+import { TextCreationHandler } from './handlers/TextCreationHandler';
+import { ObjectDragDropHandler } from './handlers/ObjectDragDropHandler';
 
 interface CanvasOverlayProps {
     width: number;
@@ -33,11 +35,6 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
 
     const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
 
-    // Refs for drag state
-    const isDragging = useRef(false);
-    const startPos = useRef({ x: 0, y: 0 });
-    const activeShape = useRef<any>(null);
-
     // Hooks
     useCanvasHistory(fabricCanvas, pageIndex);
     useGhostObject({ fabricCanvas, activeTool, toolSettings, pendingImage });
@@ -63,14 +60,13 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
         }
     }, [fabricCanvas, pageIndex, registerCanvas, unregisterCanvas, setLastActivePageIndex]);
 
-    // Manage Interactions
+    // Manage Interactions (Remaining Logic: Stamping/Image placement and global Setup)
     useEffect(() => {
         if (!fabricCanvas) return;
 
         // 1. Configure Drawing Mode
         fabricCanvas.isDrawingMode = false;
 
-        // 2. Interaction Handlers
         const handleMouseDown = (opt: any) => {
             const pointer = fabricCanvas.getPointer(opt.e);
 
@@ -81,31 +77,8 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
                 return;
             }
 
-            if (activeTool === 'rectangle') {
-                isDragging.current = true;
-                startPos.current = { x: pointer.x, y: pointer.y };
-                const rect = new Rect({
-                    left: pointer.x, top: pointer.y,
-                    width: 0, height: 0,
-                    fill: toolSettings.color,
-                    selectable: false, evented: false,
-                    originX: 'left', originY: 'top'
-                });
-                activeShape.current = rect;
-                fabricCanvas.add(rect);
-                setIsDraggingCanvas(true);
-            } else if (activeTool === 'text') {
-                const text = new IText('Type here', {
-                    left: pointer.x, top: pointer.y,
-                    fontFamily: toolSettings.fontFamily,
-                    fontSize: toolSettings.fontSize,
-                    fill: toolSettings.color
-                });
-                fabricCanvas.add(text);
-                fabricCanvas.setActiveObject(text);
-                text.enterEditing();
-                text.selectAll();
-            } else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
+            // Image/Stamp placement (still here for now)
+            if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
                 FabricImage.fromURL(pendingImage).then((img) => {
                     // Check for stored scale if it's a stamp
                     // @ts-ignore
@@ -129,89 +102,8 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
             }
         };
 
-        const handleMouseMove = (opt: any) => {
-            const pointer = fabricCanvas.getPointer(opt.e);
-
-            // Move Drag Shape (Rectangle)
-            if (isDragging.current && activeShape.current && activeTool === 'rectangle') {
-                const rect = activeShape.current;
-                const startX = startPos.current.x;
-                const startY = startPos.current.y;
-                const width = Math.abs(pointer.x - startX);
-                const height = Math.abs(pointer.y - startY);
-                rect.set({ width, height });
-                if (pointer.x < startX) rect.set({ left: pointer.x });
-                if (pointer.y < startY) rect.set({ top: pointer.y });
-                fabricCanvas.requestRenderAll();
-            }
-        };
-
-        const handleMouseUp = (opt: any) => {
+        const handleMouseUp = () => {
             setIsDraggingCanvas(false);
-
-            if (isDragging.current) {
-                isDragging.current = false;
-                if (activeShape.current) {
-                    activeShape.current.set({ selectable: true, evented: true });
-                    activeShape.current.setCoords();
-                    fabricCanvas.setActiveObject(activeShape.current);
-                    activeShape.current = null;
-                }
-                return;
-            }
-
-            // Check for Object Drop on another Page
-            const activeObj = fabricCanvas.getActiveObject();
-            if (activeObj && opt.e) {
-                const allCanvases = usePDFStore.getState().canvases;
-
-                Object.entries(allCanvases).forEach(([pIndex, targetCanvas]: [string, any]) => {
-                    const targetPageIndex = parseInt(pIndex);
-                    if (targetPageIndex === pageIndex) return;
-
-                    const targetCanvasEl = targetCanvas.getElement();
-                    const rect = targetCanvasEl.getBoundingClientRect();
-                    const clientX = opt.e.clientX;
-                    const clientY = opt.e.clientY;
-
-                    if (
-                        clientX >= rect.left &&
-                        clientX <= rect.right &&
-                        clientY >= rect.top &&
-                        clientY <= rect.bottom
-                    ) {
-                        // MATCH! Transfer object.
-                        activeObj.clone().then((cloned: any) => {
-                            const pointer = targetCanvas.getPointer(opt.e);
-
-                            cloned.set({
-                                left: pointer.x,
-                                top: pointer.y,
-                                originX: activeObj.originX,
-                                originY: activeObj.originY
-                            });
-
-                            if (cloned.id) {
-                                cloned.set('id', generateId());
-                            }
-
-                            targetCanvas.add(cloned);
-                            targetCanvas.setActiveObject(cloned);
-                            targetCanvas.requestRenderAll();
-
-                            fabricCanvas.remove(activeObj);
-                            fabricCanvas.discardActiveObject();
-                            fabricCanvas.requestRenderAll();
-                        });
-                    }
-                });
-            }
-
-            const activeObjOld = fabricCanvas.getActiveObject() as any;
-            if (activeObjOld && activeObjOld.isEditing) {
-                return;
-            }
-
         };
 
         const handleObjectModified = (e: any) => {
@@ -228,13 +120,11 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
         };
 
         fabricCanvas.on('mouse:down', handleMouseDown);
-        fabricCanvas.on('mouse:move', handleMouseMove);
         fabricCanvas.on('mouse:up', handleMouseUp);
         fabricCanvas.on('object:modified', handleObjectModified);
 
         return () => {
             fabricCanvas.off('mouse:down', handleMouseDown);
-            fabricCanvas.off('mouse:move', handleMouseMove);
             fabricCanvas.off('mouse:up', handleMouseUp);
             fabricCanvas.off('object:modified', handleObjectModified);
         };
@@ -246,6 +136,24 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
             style={{ zIndex: isDraggingCanvas ? 50 : 10 }}
         >
             <canvas ref={canvasRef} />
+
+            <RectangleDrawingHandler
+                fabricCanvas={fabricCanvas}
+                activeTool={activeTool}
+                toolSettings={toolSettings}
+                setIsDraggingCanvas={setIsDraggingCanvas}
+            />
+
+            <TextCreationHandler
+                fabricCanvas={fabricCanvas}
+                activeTool={activeTool}
+                toolSettings={toolSettings}
+            />
+
+            <ObjectDragDropHandler
+                fabricCanvas={fabricCanvas}
+                pageIndex={pageIndex}
+            />
         </div>
     );
 }
