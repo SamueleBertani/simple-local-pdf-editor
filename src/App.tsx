@@ -10,7 +10,8 @@ import { SettingsSidebar } from './components/layout/SettingsSidebar';
 import { useShortcuts } from './hooks/useShortcuts';
 import { exportToPdf, exportToImages, renderPageToCanvas } from './core/pdf/exporter';
 import type { ExportQualityOptions } from './core/pdf/exporter';
-import { reencodeCompression, downloadCompressedPdf } from './core/pdf/compressor';
+import { compressPDF, downloadPDF, selectStrategy } from './core/pdf/compressionManager';
+import type { CompressionLevel } from './core/pdf/compressionManager';
 import { ScannerEffectModal } from './components/modals/ScannerEffectModal';
 import { ExportQualityModal } from './components/modals/ExportQualityModal';
 import { clsx } from 'clsx';
@@ -164,14 +165,23 @@ function App() {
       let originalSize: number;
       let exportedSize: number;
       let percentChange: number;
+      let strategyUsed: string = 'standard';
 
       if (options.useReencode && options.reencodeQuality) {
-        // Use re-encoding compression for maximum file size reduction
-        const result = await reencodeCompression(pdfDocument, canvases, {
-          quality: options.reencodeQuality,
-          grayscale: options.grayscale
+        // Use unified compression manager (auto-selects Ghostscript on desktop, re-encode on mobile)
+        const compressionLevel: CompressionLevel = options.reencodeQuality === 'screen' ? 'extreme' : 'heavy';
+        const strategy = selectStrategy();
+        strategyUsed = strategy;
+
+        const result = await compressPDF(pdfDocument, canvases, {
+          level: compressionLevel,
+          grayscale: options.grayscale,
+          onProgress: (progress, stage) => {
+            console.log(`Compression: ${progress}% - ${stage}`);
+          }
         });
-        downloadCompressedPdf(result.pdfBytes, 'compressed_document.pdf');
+
+        downloadPDF(result.pdfBytes, 'compressed_document.pdf');
         originalSize = result.originalSize;
         exportedSize = result.compressedSize;
         percentChange = -result.compressionRatio * 100;
@@ -190,11 +200,12 @@ function App() {
       const exportedFormatted = formatFileSize(exportedSize);
       const changeSign = percentChange >= 0 ? '+' : '';
       const changeText = `${changeSign}${percentChange.toFixed(1)}%`;
+      const strategyInfo = strategyUsed !== 'standard' ? ` [${strategyUsed}]` : '';
 
       addNotification({
         type: percentChange <= 0 ? 'success' : 'info',
         title: 'PDF Exported',
-        message: `${originalFormatted} → ${exportedFormatted} (${changeText})`
+        message: `${originalFormatted} → ${exportedFormatted} (${changeText})${strategyInfo}`
       });
     } catch (e) {
       console.error(e);

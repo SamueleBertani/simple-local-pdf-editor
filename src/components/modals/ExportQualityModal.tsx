@@ -3,6 +3,7 @@ import { Button } from '../ui/Button';
 import { EXPORT_QUALITY_PRESETS, DEFAULT_EXPORT_QUALITY } from '../../core/pdf/exporter';
 import type { ExportQualityOptions } from '../../core/pdf/exporter';
 import { COMPRESSION_QUALITY_SETTINGS, type CompressionQuality } from '../../core/pdf/compressor';
+import { selectStrategy, getAvailableStrategies } from '../../core/pdf/compressionManager';
 
 interface ExportQualityModalProps {
     isOpen: boolean;
@@ -13,6 +14,47 @@ interface ExportQualityModalProps {
 
 const PRESET_KEYS = ['high', 'medium', 'low', 'extreme'] as const;
 const REENCODE_QUALITY_KEYS: CompressionQuality[] = ['ebook', 'screen'];
+
+/**
+ * Shows which compression strategy will be used based on device capabilities.
+ */
+function StrategyIndicator() {
+    const strategy = selectStrategy();
+    const strategies = getAvailableStrategies();
+    const activeStrategy = strategies.find(s => s.strategy === strategy);
+
+    const isGhostscript = strategy === 'ghostscript';
+
+    return (
+        <div className={`p-3 rounded-lg border ${
+            isGhostscript
+                ? 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800'
+                : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'
+        }`}>
+            <div className="flex items-center gap-2">
+                <span className={`text-xs font-medium ${
+                    isGhostscript
+                        ? 'text-emerald-700 dark:text-emerald-300'
+                        : 'text-slate-600 dark:text-slate-400'
+                }`}>
+                    {isGhostscript ? 'Ghostscript WASM' : 'JS Re-encoding'}
+                </span>
+                {isGhostscript && (
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300">
+                        70-90%
+                    </span>
+                )}
+            </div>
+            <p className={`text-xs mt-1 ${
+                isGhostscript
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : 'text-slate-500 dark:text-slate-400'
+            }`}>
+                {activeStrategy?.description || 'Auto-selected based on device'}
+            </p>
+        </div>
+    );
+}
 
 /**
  * Modal for selecting PDF export quality before download.
@@ -206,10 +248,13 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: 
                     })}
 
                     {useReencode && (
-                        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800">
-                            <p className="text-xs text-amber-700 dark:text-amber-300">
-                                Text will not be selectable after re-encoding. Best compression ratio (50-70%).
-                            </p>
+                        <div className="space-y-2">
+                            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800">
+                                <p className="text-xs text-amber-700 dark:text-amber-300">
+                                    Text will not be selectable after re-encoding. Best compression ratio (50-70%).
+                                </p>
+                            </div>
+                            <StrategyIndicator />
                         </div>
                     )}
                 </div>
