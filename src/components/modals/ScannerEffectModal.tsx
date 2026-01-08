@@ -47,7 +47,7 @@ export function ScannerEffectModal({ isOpen, onClose, onDownload, previewCanvas,
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                 {/* Preview Area */}
                 <div className="flex-1 bg-slate-100 dark:bg-slate-950 p-8 flex items-center justify-center overflow-auto relative">
-                    <div className="shadow-lg bg-white dark:bg-slate-800 relative">
+                    <div className="shadow-lg bg-white relative">
                         <canvas
                             ref={canvasRef}
                             className="max-h-[600px] max-w-full object-contain"

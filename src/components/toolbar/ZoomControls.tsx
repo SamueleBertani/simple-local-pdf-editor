@@ -1,10 +1,6 @@
 import { Minus, Plus, RotateCcw } from 'lucide-react';
 import { usePDFStore } from '../../store/usePDFStore';
-
-const MIN_SCALE = 0.5;
-const MAX_SCALE = 3;
-const SCALE_STEP = 0.25;
-const DEFAULT_SCALE = 1;
+import { MIN_SCALE, MAX_SCALE, SCALE_STEP, DEFAULT_SCALE } from '../../constants/zoom';
 
 /**
  * Floating zoom controls panel positioned at bottom-right of the viewport.

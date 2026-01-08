@@ -15,6 +15,7 @@ import { useToolStore } from './store/useToolStore';
 import confetti from 'canvas-confetti';
 import { useTheme } from './hooks/useTheme';
 import { ZoomControls } from './components/toolbar/ZoomControls';
+import { MIN_SCALE, MAX_SCALE, WHEEL_SENSITIVITY } from './constants/zoom';
 
 function App() {
   const { setPdfDocument, pdfDocument, canvases, scale, setScale } = usePDFStore();
@@ -34,8 +35,8 @@ function App() {
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
         e.preventDefault(); // Prevent browser zoom
-        const delta = -e.deltaY * 0.01;
-        const newScale = Math.min(3, Math.max(0.5, scaleRef.current + delta));
+        const delta = -e.deltaY * WHEEL_SENSITIVITY;
+        const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, scaleRef.current + delta));
         setScale(newScale);
       }
     };
