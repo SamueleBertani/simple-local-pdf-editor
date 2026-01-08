@@ -17,6 +17,8 @@ export interface ExportQualityOptions {
     label: string;
     /** Description of the preset */
     description: string;
+    /** Convert images to grayscale for additional compression */
+    grayscale?: boolean;
 }
 
 /** Preset export quality configurations */
@@ -26,21 +28,32 @@ export const EXPORT_QUALITY_PRESETS: Record<string, ExportQualityOptions> = {
         quality: 1,
         multiplier: 2,
         label: 'High',
-        description: 'Maximum quality, larger file size'
+        description: 'Maximum quality, larger file size',
+        grayscale: false
     },
     medium: {
         format: 'jpeg',
         quality: 0.85,
         multiplier: 1,
         label: 'Medium',
-        description: 'Good balance of quality and size'
+        description: 'Good balance of quality and size',
+        grayscale: false
     },
     low: {
         format: 'jpeg',
         quality: 0.65,
         multiplier: 1,
         label: 'Low',
-        description: 'Smaller file size'
+        description: 'Smaller file size, slight quality loss',
+        grayscale: false
+    },
+    extreme: {
+        format: 'jpeg',
+        quality: 0.45,
+        multiplier: 0.75,
+        label: 'Extreme',
+        description: 'Maximum compression, noticeable quality loss',
+        grayscale: false
     }
 };
 
@@ -54,6 +67,44 @@ export interface ExportResult {
     exportedSize: number;
     /** Size difference percentage (negative = smaller, positive = larger) */
     percentChange: number;
+}
+
+/**
+ * Applies grayscale conversion to a canvas for additional compression.
+ * Uses luminance formula: 0.299*R + 0.587*G + 0.114*B
+ */
+function applyGrayscaleToDataUrl(dataUrl: string): Promise<string> {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+
+            if (!ctx) {
+                resolve(dataUrl);
+                return;
+            }
+
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+                data[i] = gray;     // R
+                data[i + 1] = gray; // G
+                data[i + 2] = gray; // B
+                // Alpha (data[i + 3]) remains unchanged
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+    });
 }
 
 /**
@@ -82,7 +133,7 @@ export async function exportToPdf(
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
     const pages = pdfDoc.getPages();
-    const { format, quality, multiplier } = qualityOptions;
+    const { format, quality, multiplier, grayscale } = qualityOptions;
 
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
@@ -91,11 +142,16 @@ export async function exportToPdf(
 
         if (canvas && canvas.getObjects().length > 0) {
             // Get Data URL based on format
-            const dataUrl = format === 'jpeg'
+            let dataUrl = format === 'jpeg'
                 ? canvas.toDataURL({ format: 'jpeg', quality, multiplier })
                 : canvas.toDataURL({ format: 'png', multiplier });
 
-            const image = format === 'jpeg'
+            // Apply grayscale conversion if enabled (reduces file size further)
+            if (grayscale) {
+                dataUrl = await applyGrayscaleToDataUrl(dataUrl);
+            }
+
+            const image = format === 'jpeg' || grayscale
                 ? await pdfDoc.embedJpg(dataUrl)
                 : await pdfDoc.embedPng(dataUrl);
 
@@ -110,7 +166,10 @@ export async function exportToPdf(
         }
     }
 
-    const pdfBytes = await pdfDoc.save();
+    // Save with object streams for better compression
+    const pdfBytes = await pdfDoc.save({
+        useObjectStreams: true,
+    });
     const exportedSize = pdfBytes.byteLength;
     const percentChange = ((exportedSize - originalSize) / originalSize) * 100;
 

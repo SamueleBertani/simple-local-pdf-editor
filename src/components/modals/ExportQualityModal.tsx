@@ -10,7 +10,7 @@ interface ExportQualityModalProps {
     isProcessing: boolean;
 }
 
-const PRESET_KEYS = ['high', 'medium', 'low'] as const;
+const PRESET_KEYS = ['high', 'medium', 'low', 'extreme'] as const;
 
 /**
  * Modal for selecting PDF export quality before download.
