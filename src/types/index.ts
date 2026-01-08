@@ -1,4 +1,5 @@
-import { Object as FabricObject, IEvent } from 'fabric';
+import { Object as FabricObject } from 'fabric';
+import type { TEvent } from 'fabric';
 
 /**
  * Common settings shared across different tools.
@@ -51,7 +52,7 @@ export interface CustomFabricObject extends FabricObject {
  * Typed Fabric Event.
  * Provides better type safety than basic IEvent.
  */
-export interface FabricCanvasEvent extends IEvent {
+export interface FabricCanvasEvent extends TEvent {
     target?: CustomFabricObject;
     selected?: CustomFabricObject[];
 }

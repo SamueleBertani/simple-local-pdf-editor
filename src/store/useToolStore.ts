@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { ToolSettings } from '../types';
 
 export type ToolType = 'select' | 'handwriting' | 'image' | 'stamp' | 'text' | 'rectangle';
 
@@ -7,11 +8,6 @@ const TOOLS_WITH_SETTINGS: ToolType[] = ['handwriting', 'text', 'rectangle', 'st
 
 /** Check if a tool has settings */
 export const hasToolSettings = (tool: ToolType): boolean => TOOLS_WITH_SETTINGS.includes(tool);
-
-interface ToolState {
-    activeTool: ToolType;
-    pendingImage: string | null;
-import { ToolSettings } from '../types';
 
 interface ToolState {
     activeTool: ToolType;

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { usePDFStore } from './usePDFStore';
 import * as fabric from 'fabric';
-import { SerializedFabricObject } from '../types';
+import type { SerializedFabricObject } from '../types';
 
 export type ActionType = 'add' | 'remove' | 'modify';
 

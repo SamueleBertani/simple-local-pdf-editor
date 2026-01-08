@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { SerializedFabricObject } from '../types';
+import type { SerializedFabricObject } from '../types';
 
 interface ClipboardState {
     clipboard: SerializedFabricObject | null; // Serialized Fabric object
@@ -13,7 +13,7 @@ interface ClipboardState {
  */
 export const useClipboardStore = create<ClipboardState>((set) => ({
     clipboard: null,
-    lastActivePageIndex: null,
+    lastActivePageIndex: undefined,
     setClipboard: (obj) => set({ clipboard: obj }),
     setLastActivePageIndex: (index) => set({ lastActivePageIndex: index }),
 }));
