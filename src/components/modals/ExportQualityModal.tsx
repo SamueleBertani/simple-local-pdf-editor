@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '../ui/Button';
 import { EXPORT_QUALITY_PRESETS, DEFAULT_EXPORT_QUALITY } from '../../core/pdf/exporter';
 import type { ExportQualityOptions } from '../../core/pdf/exporter';
+import { COMPRESSION_QUALITY_SETTINGS, type CompressionQuality } from '../../core/pdf/compressor';
 
 interface ExportQualityModalProps {
     isOpen: boolean;
@@ -11,6 +12,7 @@ interface ExportQualityModalProps {
 }
 
 const PRESET_KEYS = ['high', 'medium', 'low', 'extreme'] as const;
+const REENCODE_QUALITY_KEYS: CompressionQuality[] = ['ebook', 'screen'];
 
 /**
  * Modal for selecting PDF export quality before download.
@@ -18,6 +20,8 @@ const PRESET_KEYS = ['high', 'medium', 'low', 'extreme'] as const;
  */
 export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: ExportQualityModalProps) {
     const [selectedPreset, setSelectedPreset] = useState<string>('medium');
+    const [useReencode, setUseReencode] = useState(false);
+    const [reencodeQuality, setReencodeQuality] = useState<CompressionQuality>('ebook');
     const modalRef = useRef<HTMLDivElement>(null);
     const firstFocusableRef = useRef<HTMLButtonElement>(null);
 
@@ -73,6 +77,15 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: 
 
     const selectedOptions = EXPORT_QUALITY_PRESETS[selectedPreset] || DEFAULT_EXPORT_QUALITY;
 
+    const handleExport = () => {
+        const options: ExportQualityOptions = {
+            ...selectedOptions,
+            useReencode,
+            reencodeQuality: useReencode ? reencodeQuality : undefined
+        };
+        onExport(options);
+    };
+
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
@@ -82,7 +95,7 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: 
         >
             <div
                 ref={modalRef}
-                className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-in fade-in zoom-in-95 duration-200"
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
             >
                 <div className="mb-6">
                     <h2 id="export-modal-title" className="text-xl font-bold text-slate-800 dark:text-slate-100">Export Quality</h2>
@@ -91,16 +104,20 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: 
                     </p>
                 </div>
 
+                {/* Standard presets */}
                 <div className="space-y-3 mb-6">
                     {PRESET_KEYS.map((key) => {
                         const preset = EXPORT_QUALITY_PRESETS[key];
-                        const isSelected = selectedPreset === key;
+                        const isSelected = selectedPreset === key && !useReencode;
 
                         return (
                             <button
                                 key={key}
                                 ref={key === 'high' ? firstFocusableRef : undefined}
-                                onClick={() => setSelectedPreset(key)}
+                                onClick={() => {
+                                    setSelectedPreset(key);
+                                    setUseReencode(false);
+                                }}
                                 className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
                                     isSelected
                                         ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
@@ -136,9 +153,70 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing }: 
                     })}
                 </div>
 
+                {/* Maximum Compression (Re-encode) section */}
+                <div className="mb-6">
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mb-3">
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
+                            Maximum Compression
+                        </p>
+                    </div>
+
+                    {REENCODE_QUALITY_KEYS.map((key) => {
+                        const settings = COMPRESSION_QUALITY_SETTINGS[key];
+                        const isSelected = useReencode && reencodeQuality === key;
+
+                        return (
+                            <button
+                                key={key}
+                                onClick={() => {
+                                    setUseReencode(true);
+                                    setReencodeQuality(key);
+                                }}
+                                className={`w-full p-4 rounded-xl border-2 text-left transition-all mb-3 ${
+                                    isSelected
+                                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                }`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className={`font-semibold ${
+                                        isSelected
+                                            ? 'text-amber-700 dark:text-amber-300'
+                                            : 'text-slate-700 dark:text-slate-200'
+                                    }`}>
+                                        {settings.label}
+                                    </span>
+                                    <span className={`text-xs px-2 py-1 rounded-full ${
+                                        isSelected
+                                            ? 'bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-300'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                    }`}>
+                                        {settings.dpi} DPI
+                                    </span>
+                                </div>
+                                <p className={`text-sm mt-1 ${
+                                    isSelected
+                                        ? 'text-amber-600 dark:text-amber-400'
+                                        : 'text-slate-500 dark:text-slate-400'
+                                }`}>
+                                    {settings.description}
+                                </p>
+                            </button>
+                        );
+                    })}
+
+                    {useReencode && (
+                        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800">
+                            <p className="text-xs text-amber-700 dark:text-amber-300">
+                                Text will not be selectable after re-encoding. Best compression ratio (50-70%).
+                            </p>
+                        </div>
+                    )}
+                </div>
+
                 <div className="flex flex-col gap-3">
                     <Button
-                        onClick={() => onExport(selectedOptions)}
+                        onClick={handleExport}
                         disabled={isProcessing}
                         className="w-full"
                     >

@@ -10,6 +10,7 @@ import { SettingsSidebar } from './components/layout/SettingsSidebar';
 import { useShortcuts } from './hooks/useShortcuts';
 import { exportToPdf, exportToImages, renderPageToCanvas } from './core/pdf/exporter';
 import type { ExportQualityOptions } from './core/pdf/exporter';
+import { reencodeCompression, downloadCompressedPdf } from './core/pdf/compressor';
 import { ScannerEffectModal } from './components/modals/ScannerEffectModal';
 import { ExportQualityModal } from './components/modals/ExportQualityModal';
 import { clsx } from 'clsx';
@@ -159,17 +160,39 @@ function App() {
     setIsExporting(true);
     try {
       triggerConfetti();
-      const result = await exportToPdf(pdfDocument, canvases, options);
+
+      let originalSize: number;
+      let exportedSize: number;
+      let percentChange: number;
+
+      if (options.useReencode && options.reencodeQuality) {
+        // Use re-encoding compression for maximum file size reduction
+        const result = await reencodeCompression(pdfDocument, canvases, {
+          quality: options.reencodeQuality,
+          grayscale: options.grayscale
+        });
+        downloadCompressedPdf(result.pdfBytes, 'compressed_document.pdf');
+        originalSize = result.originalSize;
+        exportedSize = result.compressedSize;
+        percentChange = -result.compressionRatio * 100;
+      } else {
+        // Use standard export
+        const result = await exportToPdf(pdfDocument, canvases, options);
+        originalSize = result.originalSize;
+        exportedSize = result.exportedSize;
+        percentChange = result.percentChange;
+      }
+
       setIsExportModalOpen(false);
 
       // Show size comparison notification
-      const originalFormatted = formatFileSize(result.originalSize);
-      const exportedFormatted = formatFileSize(result.exportedSize);
-      const changeSign = result.percentChange >= 0 ? '+' : '';
-      const changeText = `${changeSign}${result.percentChange.toFixed(1)}%`;
+      const originalFormatted = formatFileSize(originalSize);
+      const exportedFormatted = formatFileSize(exportedSize);
+      const changeSign = percentChange >= 0 ? '+' : '';
+      const changeText = `${changeSign}${percentChange.toFixed(1)}%`;
 
       addNotification({
-        type: result.percentChange <= 0 ? 'success' : 'info',
+        type: percentChange <= 0 ? 'success' : 'info',
         title: 'PDF Exported',
         message: `${originalFormatted} → ${exportedFormatted} (${changeText})`
       });

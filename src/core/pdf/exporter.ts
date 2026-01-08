@@ -19,6 +19,10 @@ export interface ExportQualityOptions {
     description: string;
     /** Convert images to grayscale for additional compression */
     grayscale?: boolean;
+    /** Use re-encoding mode for maximum compression (loses text selectability) */
+    useReencode?: boolean;
+    /** Re-encode quality preset when useReencode is true */
+    reencodeQuality?: 'screen' | 'ebook' | 'printer' | 'prepress';
 }
 
 /** Preset export quality configurations */
