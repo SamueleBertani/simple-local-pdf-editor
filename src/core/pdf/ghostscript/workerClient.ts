@@ -13,6 +13,7 @@ import type {
     WorkerProgressResponse,
     WorkerResultResponse
 } from './worker';
+import { generateId } from '../../../utils/generateId';
 
 export interface CompressionProgress {
     progress: number;
@@ -96,24 +97,6 @@ export function terminateCachedWorker(): void {
 }
 
 /**
- * Creates a new Ghostscript compression worker instance.
- * @deprecated Use getOrCreateWorker() for better performance
- */
-function createCompressionWorker(): Worker {
-    return new Worker(
-        new URL('./worker.ts', import.meta.url),
-        { type: 'module' }
-    );
-}
-
-/**
- * Generates a unique request ID.
- */
-function generateRequestId(): string {
-    return `gs_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-/**
  * Compresses a PDF using Ghostscript in a Web Worker.
  * This prevents the compression from blocking the main UI thread.
  *
@@ -130,7 +113,7 @@ export function compressWithWorker(
     return new Promise((resolve, reject) => {
         // Use cached worker for better performance (avoids WASM reload)
         const worker = getOrCreateWorker();
-        const requestId = generateRequestId();
+        const requestId = `gs_${generateId()}`;
         let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
         isWorkerBusy = true;
@@ -214,94 +197,4 @@ export function compressWithWorker(
 
         worker.postMessage(request);
     });
-}
-
-/**
- * Manages a pool of workers for parallel compression tasks.
- * Useful for batch processing multiple PDFs.
- */
-export class WorkerPool {
-    private maxWorkers: number;
-    private activeWorkers: Set<Worker> = new Set();
-    private queue: Array<{
-        pdfBytes: Uint8Array;
-        preset: GhostscriptPreset;
-        resolve: (result: WorkerCompressionResult) => void;
-        reject: (error: Error) => void;
-        onProgress?: (progress: CompressionProgress) => void;
-    }> = [];
-
-    constructor(maxWorkers: number = navigator.hardwareConcurrency || 2) {
-        // Limit to reasonable number to avoid memory issues
-        this.maxWorkers = Math.min(maxWorkers, 4);
-    }
-
-    /**
-     * Adds a compression task to the pool.
-     */
-    compress(
-        pdfBytes: Uint8Array,
-        preset: GhostscriptPreset,
-        onProgress?: (progress: CompressionProgress) => void
-    ): Promise<WorkerCompressionResult> {
-        return new Promise((resolve, reject) => {
-            this.queue.push({ pdfBytes, preset, resolve, reject, onProgress });
-            this.processQueue();
-        });
-    }
-
-    /**
-     * Processes the next item in the queue if workers are available.
-     */
-    private processQueue(): void {
-        while (this.activeWorkers.size < this.maxWorkers && this.queue.length > 0) {
-            const task = this.queue.shift()!;
-            this.runTask(task);
-        }
-    }
-
-    /**
-     * Runs a single compression task.
-     */
-    private async runTask(task: {
-        pdfBytes: Uint8Array;
-        preset: GhostscriptPreset;
-        resolve: (result: WorkerCompressionResult) => void;
-        reject: (error: Error) => void;
-        onProgress?: (progress: CompressionProgress) => void;
-    }): Promise<void> {
-        const worker = createCompressionWorker();
-        this.activeWorkers.add(worker);
-
-        try {
-            const result = await compressWithWorker(
-                task.pdfBytes,
-                task.preset,
-                task.onProgress
-            );
-            task.resolve(result);
-        } catch (error) {
-            task.reject(error instanceof Error ? error : new Error(String(error)));
-        } finally {
-            this.activeWorkers.delete(worker);
-            worker.terminate();
-            this.processQueue();
-        }
-    }
-
-    /**
-     * Terminates all active workers and clears the queue.
-     */
-    terminate(): void {
-        for (const worker of this.activeWorkers) {
-            worker.terminate();
-        }
-        this.activeWorkers.clear();
-
-        // Reject all queued tasks
-        for (const task of this.queue) {
-            task.reject(new Error('Worker pool terminated'));
-        }
-        this.queue = [];
-    }
 }
