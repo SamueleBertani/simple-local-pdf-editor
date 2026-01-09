@@ -24,8 +24,8 @@ export function HandwritingInput() {
             try {
                 const url = await generateHandwriting(text, { color, strokeWidth, randomness, seed });
                 setPendingImage(url);
-            } catch (error) {
-                console.error("Signature generation failed", error);
+            } catch {
+                // Signature generation failed silently
             }
         };
 

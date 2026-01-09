@@ -52,8 +52,6 @@ export async function loadGhostscript(): Promise<GhostscriptModule> {
             return gsModule;
         } catch (primaryError) {
             const primaryErrorMsg = primaryError instanceof Error ? primaryError.message : String(primaryError);
-            console.warn('Primary Ghostscript CDN failed, trying backup...', primaryErrorMsg);
-
             try {
                 // Try backup CDN
                 const initGhostscript = await import(

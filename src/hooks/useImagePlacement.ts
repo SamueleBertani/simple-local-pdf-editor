@@ -58,8 +58,7 @@ export function useImagePlacement({
                     });
                     fabricCanvas.add(img);
                     fabricCanvas.setActiveObject(img);
-                }).catch(err => {
-                    console.error("Error loading image", err);
+                }).catch(() => {
                     useNotificationStore.getState().addNotification({
                         type: 'error',
                         title: 'Image Load Error',

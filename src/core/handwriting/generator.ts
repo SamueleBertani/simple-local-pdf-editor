@@ -36,7 +36,6 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
             const buffer = await response.arrayBuffer();
             cachedFont = lib.parse(buffer);
         } catch (error) {
-            console.error('Handwriting generation error:', error);
             throw error;
         }
     }

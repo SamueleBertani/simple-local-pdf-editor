@@ -40,11 +40,8 @@ export function PDFPage({ page, scale }: PDFPageProps) {
         // Cast renderContext to satisfy pdfjs-dist RenderParameters type
         const renderTask = page.render(renderContext as Parameters<typeof page.render>[0]);
 
-        renderTask.promise.catch((error) => {
-            // RenderingCancelledException is expected on re-renders
-            if (error.name !== 'RenderingCancelledException') {
-                console.error('Render error:', error);
-            }
+        renderTask.promise.catch(() => {
+            // RenderingCancelledException is expected on re-renders, ignore silently
         });
 
         return () => {
