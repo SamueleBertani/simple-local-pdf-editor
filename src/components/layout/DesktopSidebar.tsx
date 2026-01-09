@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, FileDown, Keyboard, Moon, Sun } from 'lucide-react';
+import { Download, FileDown, Image, Keyboard, Moon, Sun } from 'lucide-react';
 import { Toolbar } from '../toolbar/Toolbar';
 import { ShortcutsModal } from '../modals/ShortcutsModal';
 
@@ -100,7 +100,7 @@ export function DesktopSidebar({
           className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
           title="Scanner Export (PNG)"
         >
-          <Download className="w-5 h-5" />
+          <Image className="w-5 h-5" />
           <span className="text-sm font-medium">Save PNG (Scan)</span>
         </button>
 
