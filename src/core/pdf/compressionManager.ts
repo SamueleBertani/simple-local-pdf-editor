@@ -14,9 +14,10 @@ import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { Canvas } from 'fabric';
 import { canUseGhostscriptWASM, getDeviceCapabilities } from './ghostscript';
 import { compressWithWorker, type CompressionProgress } from './ghostscript/workerClient';
-import type { GhostscriptPreset } from './ghostscript/compressor';
-import { reencodeCompression, type CompressionQuality } from './compressor';
-import { exportToPdf, type ExportQualityOptions } from './exporter';
+import { reencodeCompression } from './compressor';
+import { exportToPdf } from './exporter';
+import { downloadFile } from '../../utils/download';
+import { COMPRESSION_LEVEL_CONFIGS } from '../../constants/compression';
 
 // ============================================================================
 // Constants
@@ -87,59 +88,6 @@ export interface UnifiedCompressionResult {
     warnings: string[];
 }
 
-/**
- * Maps compression levels to strategy-specific settings
- */
-const LEVEL_CONFIGS: Record<CompressionLevel, {
-    ghostscript: GhostscriptPreset;
-    reencode: CompressionQuality;
-    basic: ExportQualityOptions;
-}> = {
-    light: {
-        ghostscript: 'printer',
-        reencode: 'printer',
-        basic: {
-            format: 'jpeg',
-            quality: 0.85,
-            multiplier: 1.5,
-            label: 'Light',
-            description: ''
-        }
-    },
-    medium: {
-        ghostscript: 'ebook',
-        reencode: 'ebook',
-        basic: {
-            format: 'jpeg',
-            quality: 0.75,
-            multiplier: 1,
-            label: 'Medium',
-            description: ''
-        }
-    },
-    heavy: {
-        ghostscript: 'ebook',
-        reencode: 'ebook',
-        basic: {
-            format: 'jpeg',
-            quality: 0.6,
-            multiplier: 1,
-            label: 'Heavy',
-            description: ''
-        }
-    },
-    extreme: {
-        ghostscript: 'screen',
-        reencode: 'screen',
-        basic: {
-            format: 'jpeg',
-            quality: 0.45,
-            multiplier: 0.75,
-            label: 'Extreme',
-            description: ''
-        }
-    }
-};
 
 /**
  * Selects the best compression strategy based on device capabilities.
@@ -209,7 +157,7 @@ export async function compressPDF(
     options: UnifiedCompressionOptions
 ): Promise<UnifiedCompressionResult> {
     const { level, forceStrategy, grayscale, onProgress } = options;
-    const config = LEVEL_CONFIGS[level];
+    const config = COMPRESSION_LEVEL_CONFIGS[level];
     const warnings: string[] = [];
 
     // Check PDF size before processing
@@ -331,12 +279,6 @@ export async function compressPDF(
  * Downloads compressed PDF bytes as a file.
  */
 export function downloadPDF(pdfBytes: Uint8Array, filename: string = 'compressed.pdf'): void {
-    // Create a new Uint8Array to ensure BlobPart compatibility across environments
     const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(blob, filename);
 }

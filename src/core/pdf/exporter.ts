@@ -5,6 +5,7 @@ import type { Canvas } from 'fabric';
 import { convertDataUrlToGrayscale } from './utils/grayscale';
 import { applyScannerEffect } from '../image/scannerEffect';
 import type { ScannerOptions } from '../image/scannerEffect';
+import { downloadFile } from '../../utils/download';
 
 /**
  * Export quality options for controlling file size vs visual quality tradeoff.
@@ -249,11 +250,3 @@ export async function exportToImages(
     downloadFile(content, scannerOptions ? 'scanned_export.zip' : 'pages_export.zip');
 }
 
-function downloadFile(blob: Blob, name: string) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    a.click();
-    URL.revokeObjectURL(url);
-}
