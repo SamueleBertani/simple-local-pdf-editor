@@ -151,16 +151,3 @@ export async function reencodeCompression(
     };
 }
 
-/**
- * Downloads a PDF blob with the given filename.
- */
-export function downloadCompressedPdf(pdfBytes: Uint8Array, filename: string = 'compressed_document.pdf'): void {
-    // Create a new Uint8Array to ensure BlobPart compatibility across environments
-    const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '../ui/Button';
 import { BaseModal, ModalCancelButton } from '../ui/BaseModal';
+import { SliderInput } from '../ui/SliderInput';
 import { DEFAULT_SCANNER_OPTIONS, applyScannerEffect } from '../../core/image/scannerEffect';
 import type { ScannerOptions } from '../../core/image/scannerEffect';
 
@@ -30,41 +31,6 @@ const SLIDER_CONFIGS: SliderConfig[] = [
     { key: 'contrast', label: 'Contrast', min: 0.5, max: 2, step: 0.1, format: (v) => `${v.toFixed(1)}x` },
     { key: 'brightness', label: 'Brightness', min: 0.5, max: 2, step: 0.1, format: (v) => `${v.toFixed(1)}x` },
 ];
-
-/**
- * Reusable slider input component for scanner effect settings.
- */
-function EffectSlider({
-    config,
-    value,
-    onChange
-}: {
-    config: SliderConfig;
-    value: number;
-    onChange: (value: number) => void;
-}) {
-    return (
-        <div>
-            <div className="flex justify-between mb-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                    {config.label}
-                </label>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                    {config.format(value)}
-                </span>
-            </div>
-            <input
-                type="range"
-                min={config.min}
-                max={config.max}
-                step={config.step}
-                value={value}
-                onChange={(e) => onChange(parseFloat(e.target.value))}
-                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-            />
-        </div>
-    );
-}
 
 /**
  * Modal component ("Scanner Studio") that allows users to configure and preview scanner effects.
@@ -147,11 +113,15 @@ export function ScannerEffectModal({ isOpen, onClose, onDownload, previewCanvas,
 
                     {/* Effect Sliders */}
                     {SLIDER_CONFIGS.map(config => (
-                        <EffectSlider
+                        <SliderInput
                             key={config.key}
-                            config={config}
+                            label={config.label}
                             value={(options[config.key] as number) ?? 0}
+                            min={config.min}
+                            max={config.max}
+                            step={config.step}
                             onChange={(value) => updateOption(config.key, value)}
+                            formatValue={config.format}
                         />
                     ))}
                 </div>

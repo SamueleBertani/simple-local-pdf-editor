@@ -3,6 +3,7 @@ import { useToolStore } from '../../store/useToolStore';
 import { generateHandwriting } from '../../core/handwriting/generator';
 import { Shuffle } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
+import { SliderInput } from '../ui/SliderInput';
 
 const INK_COLORS = ['#000000', '#374151', '#6b7280', '#9ca3af', '#EF4444', '#3B82F6'] as const;
 
@@ -72,38 +73,28 @@ export function HandwritingInput() {
                 />
 
                 {/* Stroke Width Slider */}
-                <div>
-                    <div className="flex justify-between mb-1">
-                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Thickness</label>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">{strokeWidth}px</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0.5"
-                        max="3"
-                        step="0.1"
-                        value={strokeWidth}
-                        onChange={(e) => setStrokeWidth(parseFloat(e.target.value))}
-                        className="w-full accent-indigo-600 h-1 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
-                    />
-                </div>
+                <SliderInput
+                    label="Thickness"
+                    value={strokeWidth}
+                    min={0.5}
+                    max={3}
+                    step={0.1}
+                    onChange={setStrokeWidth}
+                    formatValue={(v) => `${v}px`}
+                    variant="compact"
+                />
 
                 {/* Randomness Slider */}
-                <div>
-                    <div className="flex justify-between mb-1">
-                        <label className="text-xs font-medium text-slate-500 dark:text-slate-400">Messiness</label>
-                        <span className="text-xs text-slate-400 dark:text-slate-500">{(randomness * 100).toFixed(0)}%</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0"
-                        max="2"
-                        step="0.1"
-                        value={randomness}
-                        onChange={(e) => setRandomness(parseFloat(e.target.value))}
-                        className="w-full accent-indigo-600 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer"
-                    />
-                </div>
+                <SliderInput
+                    label="Messiness"
+                    value={randomness}
+                    min={0}
+                    max={2}
+                    step={0.1}
+                    onChange={setRandomness}
+                    formatValue={(v) => `${(v * 100).toFixed(0)}%`}
+                    variant="compact"
+                />
             </div>
 
             <p className="text-xs text-slate-400 text-center mt-4">
