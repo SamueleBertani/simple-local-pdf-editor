@@ -23,21 +23,17 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
     const { color = 'black', strokeWidth = 1, randomness = 1, seed = 0 } = options;
 
     if (!cachedFont) {
-        try {
-            // Handle both default export and star import scenarios
-            const lib = (opentype as unknown as { default?: typeof opentype }).default || opentype;
-            if (!lib || !lib.parse) throw new Error('Opentype library is not loaded correctly.');
+        // Handle both default export and star import scenarios
+        const lib = (opentype as unknown as { default?: typeof opentype }).default || opentype;
+        if (!lib || !lib.parse) throw new Error('Opentype library is not loaded correctly.');
 
-            const response = await fetch(FONT_URL);
-            if (!response.ok) {
-                throw new Error(`Network response error: ${response.status} ${response.statusText}`);
-            }
-
-            const buffer = await response.arrayBuffer();
-            cachedFont = lib.parse(buffer);
-        } catch (error) {
-            throw error;
+        const response = await fetch(FONT_URL);
+        if (!response.ok) {
+            throw new Error(`Network response error: ${response.status} ${response.statusText}`);
         }
+
+        const buffer = await response.arrayBuffer();
+        cachedFont = lib.parse(buffer);
     }
 
     if (!cachedFont) throw new Error('Failed to load font');
