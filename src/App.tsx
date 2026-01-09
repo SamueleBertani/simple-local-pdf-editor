@@ -58,7 +58,8 @@ function App() {
   } = useExportHandlers();
 
   useShortcuts({
-    onExportPDF: handleExportPDF,
+    onQuickSavePDF: handleQuickSavePDF,
+    onMinimizePDF: handleExportPDF,
     onScannerExport: startScannerFlow
   });
 

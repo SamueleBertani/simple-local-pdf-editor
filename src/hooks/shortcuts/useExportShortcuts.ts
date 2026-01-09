@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { isInputFocused } from '../../utils/keyboard';
 
 export interface ExportCallbacks {
-    onExportPDF?: () => void;
+    onQuickSavePDF?: () => void;
+    onMinimizePDF?: () => void;
     onScannerExport?: () => void;
 }
 
@@ -21,9 +22,12 @@ export function useExportShortcuts(callbacks?: ExportCallbacks) {
                 if (e.shiftKey) {
                     // Cmd/Ctrl + Shift + S → Save PNG (Scan)
                     callbacks.onScannerExport?.();
+                } else if (e.altKey) {
+                    // Cmd/Ctrl + Alt + S → Minimize PDF
+                    callbacks.onMinimizePDF?.();
                 } else {
-                    // Cmd/Ctrl + S → Save PDF
-                    callbacks.onExportPDF?.();
+                    // Cmd/Ctrl + S → Quick Save PDF
+                    callbacks.onQuickSavePDF?.();
                 }
             }
         };

@@ -49,6 +49,7 @@ const sections: ShortcutSection[] = [
         title: 'Export',
         shortcuts: [
             { keys: `${cmdKey}S`, description: 'Save PDF' },
+            { keys: `${cmdKey}⌥S`, description: 'Minimize PDF' },
             { keys: `${cmdKey}⇧S`, description: 'Save PNG' },
         ],
     },
@@ -90,15 +91,13 @@ export function ShortcutsModal({ isOpen, onClose }: ShortcutsModalProps) {
             title="Keyboard Shortcuts"
             maxWidth="max-w-md"
         >
-            <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-5">
-                    <ShortcutSection {...sections[0]} />
-                    <ShortcutSection {...sections[2]} />
-                </div>
-                <div className="space-y-5">
-                    <ShortcutSection {...sections[1]} />
-                    <ShortcutSection {...sections[3]} />
-                </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+                {/* Row 1 */}
+                <ShortcutSection {...sections[0]} />
+                <ShortcutSection {...sections[1]} />
+                {/* Row 2 */}
+                <ShortcutSection {...sections[2]} />
+                <ShortcutSection {...sections[3]} />
             </div>
             <div className="mt-6">
                 <ModalCancelButton onClick={onClose}>
