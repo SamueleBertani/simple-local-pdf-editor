@@ -1,5 +1,7 @@
-import { Download, Moon, Sun } from 'lucide-react';
+import { useState } from 'react';
+import { Download, Keyboard, Moon, Sun } from 'lucide-react';
 import { Toolbar } from '../toolbar/Toolbar';
+import { ShortcutsModal } from '../modals/ShortcutsModal';
 
 /**
  * Props for the DesktopSidebar component.
@@ -39,12 +41,34 @@ export function DesktopSidebar({
   onExportPDF,
   onScannerExport
 }: DesktopSidebarProps) {
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
   return (
     <div className="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
       {/* Tools */}
       <Toolbar />
 
       <div className="flex-1" />
+
+      {/* Icon buttons */}
+      <div className="flex gap-2 px-4">
+        <button
+          onClick={onToggleTheme}
+          className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
+        <button
+          onClick={() => setShowShortcuts(true)}
+          className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          title="Keyboard Shortcuts"
+          aria-label="Show keyboard shortcuts"
+        >
+          <Keyboard className="w-5 h-5" />
+        </button>
+      </div>
 
       <div className="w-full h-px bg-slate-200 dark:bg-slate-800" />
 
@@ -69,15 +93,6 @@ export function DesktopSidebar({
         </button>
 
         <button
-          onClick={onToggleTheme}
-          className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
-          title="Toggle Theme"
-        >
-          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          <span className="text-sm font-medium">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-        </button>
-
-        <button
           onClick={() => window.location.reload()}
           className="flex items-center gap-3 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors p-3 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 mt-2 w-full"
           title="Close File"
@@ -86,6 +101,11 @@ export function DesktopSidebar({
           <span className="text-sm font-medium">Close File</span>
         </button>
       </div>
+
+      <ShortcutsModal
+        isOpen={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+      />
     </div>
   );
 }
