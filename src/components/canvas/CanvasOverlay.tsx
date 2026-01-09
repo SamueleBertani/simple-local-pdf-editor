@@ -12,10 +12,17 @@ import { ObjectDragDropHandler } from './handlers/ObjectDragDropHandler';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import type { CustomFabricObject } from '../../types';
 
+/**
+ * Props for the CanvasOverlay component.
+ */
 interface CanvasOverlayProps {
+    /** Canvas width in pixels */
     width: number;
+    /** Canvas height in pixels */
     height: number;
+    /** Current zoom scale factor */
     scale: number;
+    /** 1-based page number this overlay belongs to */
     pageIndex: number;
 }
 
@@ -37,11 +44,10 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
 
     const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
 
-    // Hooks
     useCanvasHistory(fabricCanvas, pageIndex);
     useGhostObject({ fabricCanvas, activeTool, toolSettings, pendingImage });
 
-    // Register canvas with global store
+    /** Register canvas with global store and track page interactions */
     useEffect(() => {
         if (fabricCanvas) {
             registerCanvas(pageIndex, fabricCanvas);
@@ -62,7 +68,7 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
         }
     }, [fabricCanvas, pageIndex, registerCanvas, unregisterCanvas, setLastActivePageIndex]);
 
-    // Manage Interactions (Remaining Logic: Stamping/Image placement and global Setup)
+    /** Handles mouse interactions for image/stamp placement */
     useEffect(() => {
         if (!fabricCanvas) return;
 

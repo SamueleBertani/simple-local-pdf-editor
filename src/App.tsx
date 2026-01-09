@@ -321,7 +321,6 @@ function App() {
           {!pdfDocument ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
               <div className="flex flex-col items-center gap-4 mb-8">
-                {/* Icon removed as requested */}
                 <h1 className="text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">PDF Editor</h1>
               </div>
 

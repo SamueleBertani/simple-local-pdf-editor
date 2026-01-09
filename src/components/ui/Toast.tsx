@@ -2,6 +2,9 @@ import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { NotificationType } from '../../store/useNotificationStore';
 
+/**
+ * Props for the Toast notification component.
+ */
 interface ToastProps {
     id: string;
     type: NotificationType;
@@ -10,24 +13,37 @@ interface ToastProps {
     onDismiss: (id: string) => void;
 }
 
+/** Icon mapping for each notification type */
 const icons = {
     success: CheckCircle,
     error: AlertCircle,
     info: Info
 };
 
+/** Background and border styles for each notification type */
 const styles = {
     success: "bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200",
     error: "bg-red-50 dark:bg-red-900 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200",
     info: "bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200"
 };
 
+/** Icon color styles for each notification type */
 const iconStyles = {
     success: "text-green-500 dark:text-green-400",
     error: "text-red-500 dark:text-red-400",
     info: "text-blue-500 dark:text-blue-400"
 };
 
+/**
+ * Toast notification component for displaying temporary messages.
+ * Supports success, error, and info notification types with appropriate styling.
+ *
+ * @param props.id - Unique identifier for the notification
+ * @param props.type - Type of notification (success, error, info)
+ * @param props.title - Title text displayed prominently
+ * @param props.message - Optional detailed message
+ * @param props.onDismiss - Callback to dismiss the notification
+ */
 export const Toast = ({ id, type, title, message, onDismiss }: ToastProps) => {
     const Icon = icons[type];
 

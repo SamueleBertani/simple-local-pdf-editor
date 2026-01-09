@@ -4,6 +4,13 @@ import { useHistoryStore } from '../store/useHistoryStore';
 import { generateId } from '../utils/generateId';
 import type { CustomFabricObject, SerializedFabricObject, FabricCanvasEvent } from '../types';
 
+/**
+ * Hook that integrates a Fabric.js canvas with the undo/redo history system.
+ * Tracks object additions, removals, and modifications for a specific page.
+ *
+ * @param canvas - The Fabric.js canvas instance to track
+ * @param pageIndex - The 1-based page number this canvas belongs to
+ */
 export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
     const { addToHistory, isUndoRedoOperation } = useHistoryStore();
 
@@ -13,7 +20,7 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
     useEffect(() => {
         if (!canvas) return;
 
-        // Helper to ensure object has ID
+        /** Ensures the object has a unique ID for tracking */
         const ensureId = (obj: CustomFabricObject): string => {
             if (!obj.id) {
                 obj.set('id', generateId());
@@ -21,6 +28,7 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
             return obj.id!;
         };
 
+        /** Handles object addition events */
         const handleAdd = (e: FabricCanvasEvent) => {
             if (isUndoRedoOperation) return;
             const obj = e.target as CustomFabricObject;
@@ -35,6 +43,7 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
             });
         };
 
+        /** Handles object removal events */
         const handleRemove = (e: FabricCanvasEvent) => {
             if (isUndoRedoOperation) return;
             const obj = e.target as CustomFabricObject;
@@ -49,8 +58,7 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
             });
         };
 
-        // We'll capture state when an object becomes active (selected)
-        // If it is modified later, we use that initial captured state as 'previous'.
+        /** Captures object state when selected for later comparison on modify */
         const handleSelectionCreated = (e: FabricCanvasEvent) => {
             const selected = e.selected;
             const obj = selected?.[0];

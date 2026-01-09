@@ -41,14 +41,14 @@ export function useFabric({ width, height, scale }: UseFabricProps) {
             }
             setFabricCanvas(null);
         };
-    }, []); // Run once on mount (dimensions handled in separate effect to avoid full recreation if possible)
+    }, []);
 
     // Handle Dimension/Scale Updates
     useEffect(() => {
         if (!fabricCanvas) return;
 
         fabricCanvas.setDimensions({ width, height });
-        fabricCanvas.setZoom(scale); // Optional: Match zoom if we want vector scaling behavior
+        fabricCanvas.setZoom(scale);
         fabricCanvas.requestRenderAll();
 
     }, [fabricCanvas, width, height, scale]);

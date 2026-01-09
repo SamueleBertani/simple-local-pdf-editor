@@ -3,6 +3,8 @@ import JSZip from 'jszip';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { Canvas } from 'fabric';
 import { convertDataUrlToGrayscale } from './utils/grayscale';
+import { applyScannerEffect } from '../image/scannerEffect';
+import type { ScannerOptions } from '../image/scannerEffect';
 
 /**
  * Export quality options for controlling file size vs visual quality tradeoff.
@@ -147,9 +149,6 @@ export async function exportToPdf(
 
     return { pdfBytes, originalSize, exportedSize, percentChange };
 }
-
-import { applyScannerEffect } from '../image/scannerEffect';
-import type { ScannerOptions } from '../image/scannerEffect';
 
 /**
  * Renders a single PDF page and its overlay annotations to a standard HTML Canvas.
