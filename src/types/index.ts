@@ -56,3 +56,26 @@ export interface FabricCanvasEvent extends TEvent {
     target?: CustomFabricObject;
     selected?: CustomFabricObject[];
 }
+
+/**
+ * Type guard to check if a FabricObject is a CustomFabricObject.
+ * CustomFabricObject extends FabricObject with optional id and data properties.
+ */
+export function isCustomFabricObject(obj: FabricObject | undefined | null): obj is CustomFabricObject {
+    return obj !== null && obj !== undefined;
+}
+
+/**
+ * Safely cast a FabricObject to CustomFabricObject.
+ * Returns undefined if the object is null/undefined.
+ */
+export function asCustomFabricObject(obj: FabricObject | undefined | null): CustomFabricObject | undefined {
+    return isCustomFabricObject(obj) ? obj : undefined;
+}
+
+/**
+ * Cast an array of FabricObjects to CustomFabricObjects.
+ */
+export function asCustomFabricObjects(objects: FabricObject[]): CustomFabricObject[] {
+    return objects as CustomFabricObject[];
+}

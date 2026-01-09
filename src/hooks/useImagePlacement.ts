@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { FabricImage, type Canvas, type TPointerEventInfo, type TPointerEvent, type ModifiedEvent } from 'fabric';
+import { FabricImage, type Canvas, type TPointerEventInfo, type TPointerEvent, type FabricObject } from 'fabric';
 import { useToolStore, type ToolType } from '../store/useToolStore';
 import { useNotificationStore } from '../store/useNotificationStore';
-import type { CustomFabricObject, ToolSettings } from '../types';
+import { asCustomFabricObject, type ToolSettings } from '../types';
 
 interface UseImagePlacementOptions {
     fabricCanvas: Canvas | null;
@@ -31,7 +31,7 @@ export function useImagePlacement({
 
         const handleMouseDown = (opt: TPointerEventInfo<TPointerEvent>) => {
             const pointer = fabricCanvas.getPointer(opt.e);
-            const target = opt.target as CustomFabricObject | undefined;
+            const target = asCustomFabricObject(opt.target);
 
             // Allow selection of existing objects (ignore if clicking ghost)
             if (target && !target.data?.isGhost) {
@@ -72,8 +72,8 @@ export function useImagePlacement({
             setIsDraggingCanvas(false);
         };
 
-        const handleObjectModified = (e: ModifiedEvent) => {
-            const target = e.target as CustomFabricObject | undefined;
+        const handleObjectModified = (e: { target: FabricObject }) => {
+            const target = asCustomFabricObject(e.target);
             if (!target) return;
 
             // If it's a stamp (has stampUrl in data), save the new scale
@@ -87,7 +87,7 @@ export function useImagePlacement({
 
         fabricCanvas.on('mouse:down', handleMouseDown);
         fabricCanvas.on('mouse:up', handleMouseUp);
-        fabricCanvas.on('object:modified', handleObjectModified as never);
+        fabricCanvas.on('object:modified', handleObjectModified);
 
         return () => {
             fabricCanvas.off('mouse:down', handleMouseDown);

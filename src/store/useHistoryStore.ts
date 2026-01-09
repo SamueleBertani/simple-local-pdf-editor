@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { usePDFStore } from './usePDFStore';
 import * as fabric from 'fabric';
-import type { SerializedFabricObject, CustomFabricObject } from '../types';
+import { asCustomFabricObjects, type SerializedFabricObject, type CustomFabricObject } from '../types';
 
 export type ActionType = 'add' | 'remove' | 'modify';
 
@@ -98,7 +98,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
 /** Helper to find an object on a canvas by its custom ID property */
 function findObjectById(canvas: fabric.Canvas, id?: string): CustomFabricObject | undefined {
     if (!id) return undefined;
-    return (canvas.getObjects() as CustomFabricObject[]).find(o => o.id === id);
+    return asCustomFabricObjects(canvas.getObjects()).find(o => o.id === id);
 }
 
 async function applyUndo(canvas: fabric.Canvas, action: HistoryAction): Promise<void> {
