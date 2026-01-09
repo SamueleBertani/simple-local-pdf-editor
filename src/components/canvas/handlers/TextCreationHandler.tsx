@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { IText, Canvas } from 'fabric';
-import type { ToolSettings } from '../../../types';
+import { IText, Canvas, type TPointerEventInfo, type TPointerEvent } from 'fabric';
+import type { ToolSettings, CustomFabricObject } from '../../../types';
 
 interface TextCreationHandlerProps {
     fabricCanvas: Canvas | null;
@@ -17,11 +17,12 @@ export const TextCreationHandler = ({
     useEffect(() => {
         if (!fabricCanvas) return;
 
-        const handleMouseDown = (opt: any) => {
+        const handleMouseDown = (opt: TPointerEventInfo<TPointerEvent>) => {
             if (activeTool !== 'text') return;
 
             // Ignore if clicking an existing non-ghost object
-            if (opt.target && !opt.target.data?.isGhost) return;
+            const target = opt.target as CustomFabricObject | undefined;
+            if (target && !target.data?.isGhost) return;
 
             const pointer = fabricCanvas.getPointer(opt.e);
 

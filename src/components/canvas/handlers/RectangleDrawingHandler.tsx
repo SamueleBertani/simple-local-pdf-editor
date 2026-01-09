@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { Rect, Canvas } from 'fabric';
-import type { ToolSettings } from '../../../types';
+import { Rect, Canvas, type TPointerEventInfo, type TPointerEvent } from 'fabric';
+import type { ToolSettings, CustomFabricObject } from '../../../types';
 
 interface RectangleDrawingHandlerProps {
     fabricCanvas: Canvas | null;
@@ -22,9 +22,10 @@ export const RectangleDrawingHandler = ({
     useEffect(() => {
         if (!fabricCanvas) return;
 
-        const handleMouseDown = (opt: any) => {
+        const handleMouseDown = (opt: TPointerEventInfo<TPointerEvent>) => {
             if (activeTool !== 'rectangle') return;
-            if (opt.target && !opt.target.data?.isGhost) return;
+            const target = opt.target as CustomFabricObject | undefined;
+            if (target && !target.data?.isGhost) return;
 
             const pointer = fabricCanvas.getPointer(opt.e);
 
@@ -42,7 +43,7 @@ export const RectangleDrawingHandler = ({
             setIsDraggingCanvas(true);
         };
 
-        const handleMouseMove = (opt: any) => {
+        const handleMouseMove = (opt: TPointerEventInfo<TPointerEvent>) => {
             if (activeTool !== 'rectangle') return;
             if (!isDragging.current || !activeShape.current) return;
 

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import type { PDFPageProxy } from 'pdfjs-dist';
 import { usePDFStore } from '../../store/usePDFStore';
 import { PDFPage } from './PDFPage';
 import { Loader2 } from 'lucide-react';
@@ -9,7 +10,7 @@ import { Loader2 } from 'lucide-react';
  */
 export function PDFViewer() {
     const { pdfDocument, scale, setScale } = usePDFStore();
-    const [pages, setPages] = useState<any[]>([]);
+    const [pages, setPages] = useState<PDFPageProxy[]>([]);
     const [loading, setLoading] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 

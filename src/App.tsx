@@ -10,6 +10,7 @@ import { SettingsSidebar } from './components/layout/SettingsSidebar';
 import { useShortcuts } from './hooks/useShortcuts';
 import { exportToPdf, exportToImages, renderPageToCanvas } from './core/pdf/exporter';
 import type { ExportQualityOptions } from './core/pdf/exporter';
+import type { ScannerOptions } from './core/image/scannerEffect';
 import { compressPDF, downloadPDF, selectStrategy } from './core/pdf/compressionManager';
 import type { CompressionLevel } from './core/pdf/compressionManager';
 import { ScannerEffectModal } from './components/modals/ScannerEffectModal';
@@ -127,7 +128,7 @@ function App() {
     setIsScannerOpen(true);
   };
 
-  const handleScannerDownload = async (options: any) => {
+  const handleScannerDownload = async (options: ScannerOptions) => {
     if (!pdfDocument) return;
     setIsProcessing(true);
     try {

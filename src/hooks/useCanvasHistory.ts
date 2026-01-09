@@ -1,28 +1,30 @@
 import { useEffect, useRef } from 'react';
-import { Canvas } from 'fabric';
+import { Canvas, type BasicTransformEvent } from 'fabric';
 import { useHistoryStore } from '../store/useHistoryStore';
 import { generateId } from '../utils/generateId';
+import type { CustomFabricObject, SerializedFabricObject, FabricCanvasEvent } from '../types';
 
 export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
     const { addToHistory, isUndoRedoOperation } = useHistoryStore();
 
     // We use a ref to track if an object is currently being modified (drag start -> drag end)
-    const activeModification = useRef<{ target: string, previousData: any } | null>(null);
+    const activeModification = useRef<{ target: string; previousData: SerializedFabricObject } | null>(null);
 
     useEffect(() => {
         if (!canvas) return;
 
         // Helper to ensure object has ID
-        const ensureId = (obj: any) => {
+        const ensureId = (obj: CustomFabricObject): string => {
             if (!obj.id) {
                 obj.set('id', generateId());
             }
-            return obj.id;
+            return obj.id!;
         };
 
-        const handleAdd = (e: any) => {
+        const handleAdd = (e: FabricCanvasEvent) => {
             if (isUndoRedoOperation) return;
-            const obj = e.target;
+            const obj = e.target as CustomFabricObject;
+            if (!obj) return;
             const id = ensureId(obj);
 
             addToHistory({
@@ -33,30 +35,32 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
             });
         };
 
-        const handleRemove = (e: any) => {
+        const handleRemove = (e: FabricCanvasEvent) => {
             if (isUndoRedoOperation) return;
-            const obj = e.target;
-            const id = obj.id; // Should have ID from add
+            const obj = e.target as CustomFabricObject;
+            if (!obj) return;
+            const id = obj.id;
 
             addToHistory({
                 type: 'remove',
                 pageIndex,
-                objectId: id,
+                objectId: id!,
                 data: obj.toObject(['id', 'left', 'top', 'width', 'height', 'scaleX', 'scaleY', 'fill', 'stroke', 'text']),
             });
         };
 
         // We'll capture state when an object becomes active (selected)
         // If it is modified later, we use that initial captured state as 'previous'.
-        const handleSelectionCreated = (e: any) => {
-            const obj = e.selected?.[0];
+        const handleSelectionCreated = (e: FabricCanvasEvent) => {
+            const selected = e.selected;
+            const obj = selected?.[0];
             if (!obj) return;
             ensureId(obj);
 
             // Only track single object modification for V1 simplicity
-            if (e.selected.length === 1) {
+            if (selected.length === 1) {
                 activeModification.current = {
-                    target: obj.id,
+                    target: obj.id!,
                     previousData: obj.toObject(['id', 'left', 'top', 'width', 'height', 'scaleX', 'scaleY', 'fill', 'stroke', 'text', 'angle'])
                 };
             }
@@ -66,9 +70,9 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
          * Event handler for when an object is modified (moved, scaled, rotated).
          * Checks if the modification is valid (matched ID) and pushes to history.
          */
-        const handleModified = (e: any) => {
+        const handleModified = (e: BasicTransformEvent) => {
             if (isUndoRedoOperation) return;
-            const obj = e.target;
+            const obj = e.target as CustomFabricObject;
 
             if (activeModification.current && activeModification.current.target === obj.id) {
                 addToHistory({

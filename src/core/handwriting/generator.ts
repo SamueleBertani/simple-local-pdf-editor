@@ -86,30 +86,33 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
         const cos = Math.cos(rad);
         const sin = Math.sin(rad);
 
-        path.commands.forEach((cmd: any) => {
-            if (cmd.x !== undefined && cmd.y !== undefined) {
-                const px = cmd.x - cx;
-                const py = cmd.y - cy;
+        // PathCommand is a discriminated union - we cast to access optional coordinate properties
+        type MutablePathCommand = { x?: number; y?: number; x1?: number; y1?: number; x2?: number; y2?: number };
+        path.commands.forEach((cmd) => {
+            const command = cmd as MutablePathCommand;
+            if (command.x !== undefined && command.y !== undefined) {
+                const px = command.x - cx;
+                const py = command.y - cy;
                 const nx = px * cos - py * sin + cx;
                 const ny = px * sin + py * cos + cy;
-                cmd.x = nx + xCurr + xOff;
-                cmd.y = ny + fontSize + yOff;
+                command.x = nx + xCurr + xOff;
+                command.y = ny + fontSize + yOff;
             }
-            if (cmd.x1 !== undefined && cmd.y1 !== undefined) {
-                const px = cmd.x1 - cx;
-                const py = cmd.y1 - cy;
+            if (command.x1 !== undefined && command.y1 !== undefined) {
+                const px = command.x1 - cx;
+                const py = command.y1 - cy;
                 const nx = px * cos - py * sin + cx;
                 const ny = px * sin + py * cos + cy;
-                cmd.x1 = nx + xCurr + xOff;
-                cmd.y1 = ny + fontSize + yOff;
+                command.x1 = nx + xCurr + xOff;
+                command.y1 = ny + fontSize + yOff;
             }
-            if (cmd.x2 !== undefined && cmd.y2 !== undefined) {
-                const px = cmd.x2 - cx;
-                const py = cmd.y2 - cy;
+            if (command.x2 !== undefined && command.y2 !== undefined) {
+                const px = command.x2 - cx;
+                const py = command.y2 - cy;
                 const nx = px * cos - py * sin + cx;
                 const ny = px * sin + py * cos + cy;
-                cmd.x2 = nx + xCurr + xOff;
-                cmd.y2 = ny + fontSize + yOff;
+                command.x2 = nx + xCurr + xOff;
+                command.y2 = ny + fontSize + yOff;
             }
         });
 

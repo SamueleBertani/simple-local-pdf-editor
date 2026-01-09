@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FabricImage } from 'fabric';
+import { FabricImage, type TPointerEventInfo, type TPointerEvent, type BasicTransformEvent } from 'fabric';
 import { useFabric } from '../../hooks/useFabric';
 import { useToolStore } from '../../store/useToolStore';
 import { usePDFStore } from '../../store/usePDFStore';
@@ -10,6 +10,7 @@ import { RectangleDrawingHandler } from './handlers/RectangleDrawingHandler';
 import { TextCreationHandler } from './handlers/TextCreationHandler';
 import { ObjectDragDropHandler } from './handlers/ObjectDragDropHandler';
 import { useNotificationStore } from '../../store/useNotificationStore';
+import type { CustomFabricObject } from '../../types';
 
 interface CanvasOverlayProps {
     width: number;
@@ -68,11 +69,12 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
         // 1. Configure Drawing Mode
         fabricCanvas.isDrawingMode = false;
 
-        const handleMouseDown = (opt: any) => {
+        const handleMouseDown = (opt: TPointerEventInfo<TPointerEvent>) => {
             const pointer = fabricCanvas.getPointer(opt.e);
+            const target = opt.target as CustomFabricObject | undefined;
 
             // Allow selection of existing objects (ignore if clicking ghost)
-            if (opt.target && !opt.target.data?.isGhost) {
+            if (target && !target.data?.isGhost) {
                 // We are possibly starting a drag of an object
                 setIsDraggingCanvas(true);
                 return;
@@ -111,8 +113,8 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
             setIsDraggingCanvas(false);
         };
 
-        const handleObjectModified = (e: any) => {
-            const target = e.target;
+        const handleObjectModified = (e: BasicTransformEvent) => {
+            const target = e.target as CustomFabricObject | undefined;
             if (!target) return;
 
             // If it's a stamp (has stampUrl in data), save the new scale
