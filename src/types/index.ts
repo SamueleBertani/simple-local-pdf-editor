@@ -33,7 +33,7 @@ export interface SerializedFabricObject {
     fontSize?: number;
     angle?: number;
     opacity?: number;
-    [key: string]: any; // Allow other fabric properties
+    [key: string]: unknown; // Allow other fabric properties
 }
 
 /**
@@ -44,7 +44,7 @@ export interface CustomFabricObject extends FabricObject {
     data?: {
         isGhost?: boolean;
         stampUrl?: string;
-        [key: string]: any;
+        [key: string]: unknown;
     };
 }
 

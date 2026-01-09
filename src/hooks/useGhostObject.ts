@@ -222,5 +222,5 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             }
             window.removeEventListener('mouseup', handleGlobalMouseUp);
         };
-    }, [fabricCanvas, updateGhost, isMobile]);
+    }, [fabricCanvas, updateGhost, isMobile, checkAndAddGhost]);
 }

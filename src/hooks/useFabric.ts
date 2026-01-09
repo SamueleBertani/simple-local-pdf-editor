@@ -36,11 +36,12 @@ export function useFabric({ width, height, scale }: UseFabricProps) {
         return () => {
             try {
                 canvas.dispose();
-            } catch (e) {
+            } catch {
                 // Ignore errors during disposal
             }
             setFabricCanvas(null);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Handle Dimension/Scale Updates

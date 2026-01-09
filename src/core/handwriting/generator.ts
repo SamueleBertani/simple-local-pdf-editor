@@ -25,7 +25,7 @@ export async function generateHandwriting(text: string, options: HandwritingOpti
     if (!cachedFont) {
         try {
             // Handle both default export and star import scenarios
-            const lib = (opentype as any).default || opentype;
+            const lib = (opentype as unknown as { default?: typeof opentype }).default || opentype;
             if (!lib || !lib.parse) throw new Error('Opentype library is not loaded correctly.');
 
             const response = await fetch(FONT_URL);

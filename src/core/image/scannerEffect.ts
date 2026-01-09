@@ -121,7 +121,7 @@ export async function applyScannerEffect(
 
             // 1. Distortion (Warping)
             // Calculate source coordinate
-            let sx = x;
+            const sx = x;
             let sy = y;
 
             if (distortion > 0) {

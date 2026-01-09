@@ -110,7 +110,7 @@ async function applyUndo(canvas: fabric.Canvas, action: HistoryAction): Promise<
     } else if (action.type === 'remove') {
         const objects = await fabric.util.enlivenObjects([action.data], {});
         objects.forEach((o) => {
-            canvas.add(o);
+            canvas.add(o as fabric.FabricObject);
         });
     } else if (action.type === 'modify') {
         const obj = findObjectById(canvas, action.objectId);
@@ -125,7 +125,7 @@ async function applyRedo(canvas: fabric.Canvas, action: HistoryAction): Promise<
     if (action.type === 'add') {
         const objects = await fabric.util.enlivenObjects([action.data], {});
         objects.forEach((o) => {
-            canvas.add(o);
+            canvas.add(o as fabric.FabricObject);
         });
     } else if (action.type === 'remove') {
         const obj = findObjectById(canvas, action.objectId);

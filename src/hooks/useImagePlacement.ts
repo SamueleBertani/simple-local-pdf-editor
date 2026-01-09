@@ -26,6 +26,7 @@ export function useImagePlacement({
     useEffect(() => {
         if (!fabricCanvas) return;
 
+        // eslint-disable-next-line react-hooks/immutability
         fabricCanvas.isDrawingMode = false;
 
         const handleMouseDown = (opt: TPointerEventInfo<TPointerEvent>) => {

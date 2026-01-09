@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Canvas, type BasicTransformEvent } from 'fabric';
+import { Canvas, type FabricObject } from 'fabric';
 import { useHistoryStore } from '../store/useHistoryStore';
 import { generateId } from '../utils/generateId';
-import type { CustomFabricObject, SerializedFabricObject, FabricCanvasEvent } from '../types';
+import type { CustomFabricObject, SerializedFabricObject } from '../types';
 
 /**
  * Hook that integrates a Fabric.js canvas with the undo/redo history system.
@@ -29,7 +29,7 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
         };
 
         /** Handles object addition events */
-        const handleAdd = (e: FabricCanvasEvent) => {
+        const handleAdd = (e: { target: FabricObject }) => {
             if (isUndoRedoOperation) return;
             const obj = e.target as CustomFabricObject;
             if (!obj) return;
@@ -44,7 +44,7 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
         };
 
         /** Handles object removal events */
-        const handleRemove = (e: FabricCanvasEvent) => {
+        const handleRemove = (e: { target: FabricObject }) => {
             if (isUndoRedoOperation) return;
             const obj = e.target as CustomFabricObject;
             if (!obj) return;
@@ -59,9 +59,9 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
         };
 
         /** Captures object state when selected for later comparison on modify */
-        const handleSelectionCreated = (e: FabricCanvasEvent) => {
+        const handleSelectionCreated = (e: { selected: FabricObject[] }) => {
             const selected = e.selected;
-            const obj = selected?.[0];
+            const obj = selected?.[0] as CustomFabricObject | undefined;
             if (!obj) return;
             ensureId(obj);
 
@@ -78,7 +78,7 @@ export function useCanvasHistory(canvas: Canvas | null, pageIndex: number) {
          * Event handler for when an object is modified (moved, scaled, rotated).
          * Checks if the modification is valid (matched ID) and pushes to history.
          */
-        const handleModified = (e: BasicTransformEvent) => {
+        const handleModified = (e: { target: FabricObject }) => {
             if (isUndoRedoOperation) return;
             const obj = e.target as CustomFabricObject;
 
