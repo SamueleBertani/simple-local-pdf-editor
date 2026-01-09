@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { usePDFStore } from './usePDFStore';
 import * as fabric from 'fabric';
-import type { SerializedFabricObject, CustomFabricObject } from '../types';
+import { asCustomFabricObjects, type SerializedFabricObject, type CustomFabricObject } from '../types';
 
 export type ActionType = 'add' | 'remove' | 'modify';
 
@@ -63,8 +63,6 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
                 future: [action, ...future]
             });
         } finally {
-            // We need to wait for events to fire/settle before enabling flag? 
-            // Fabric events are often synchronous.
             setIsUndoRedoOperation(false);
         }
     },
@@ -97,26 +95,25 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     }
 }));
 
-// Helper to find an object on a canvas by its custom ID property
-function FindObjectById(canvas: fabric.Canvas, id?: string): CustomFabricObject | undefined {
+/** Helper to find an object on a canvas by its custom ID property */
+function findObjectById(canvas: fabric.Canvas, id?: string): CustomFabricObject | undefined {
     if (!id) return undefined;
-    return (canvas.getObjects() as CustomFabricObject[]).find(o => o.id === id);
+    return asCustomFabricObjects(canvas.getObjects()).find(o => o.id === id);
 }
 
-// ... existing applies ...
-async function applyUndo(canvas: any, action: HistoryAction) {
+async function applyUndo(canvas: fabric.Canvas, action: HistoryAction): Promise<void> {
     if (action.type === 'add') {
-        const obj = FindObjectById(canvas, action.objectId);
+        const obj = findObjectById(canvas, action.objectId);
         if (obj) {
             canvas.remove(obj);
         }
     } else if (action.type === 'remove') {
         const objects = await fabric.util.enlivenObjects([action.data], {});
-        objects.forEach((o: any) => {
-            canvas.add(o);
+        objects.forEach((o) => {
+            canvas.add(o as fabric.FabricObject);
         });
     } else if (action.type === 'modify') {
-        const obj = FindObjectById(canvas, action.objectId);
+        const obj = findObjectById(canvas, action.objectId);
         if (obj && action.previousData) {
             obj.set(action.previousData);
             obj.setCoords();
@@ -124,19 +121,19 @@ async function applyUndo(canvas: any, action: HistoryAction) {
     }
 }
 
-async function applyRedo(canvas: any, action: HistoryAction) {
+async function applyRedo(canvas: fabric.Canvas, action: HistoryAction): Promise<void> {
     if (action.type === 'add') {
         const objects = await fabric.util.enlivenObjects([action.data], {});
-        objects.forEach((o: any) => {
-            canvas.add(o);
+        objects.forEach((o) => {
+            canvas.add(o as fabric.FabricObject);
         });
     } else if (action.type === 'remove') {
-        const obj = FindObjectById(canvas, action.objectId);
+        const obj = findObjectById(canvas, action.objectId);
         if (obj) {
             canvas.remove(obj);
         }
     } else if (action.type === 'modify') {
-        const obj = FindObjectById(canvas, action.objectId);
+        const obj = findObjectById(canvas, action.objectId);
         if (obj) {
             obj.set(action.data);
             obj.setCoords();

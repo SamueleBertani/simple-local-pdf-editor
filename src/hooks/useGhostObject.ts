@@ -1,13 +1,14 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { Canvas, FabricImage, IText } from 'fabric';
+import { Canvas, FabricImage, IText, type FabricObject, type TPointerEventInfo, type TPointerEvent } from 'fabric';
 import { useToolStore } from '../store/useToolStore';
 import type { ToolType } from '../store/useToolStore';
 import { useIsMobile } from './useIsMobile';
+import type { ToolSettings, CustomFabricObject } from '../types';
 
 interface UseGhostObjectProps {
     fabricCanvas: Canvas | null;
     activeTool: ToolType;
-    toolSettings: any;
+    toolSettings: ToolSettings;
     pendingImage: string | null;
 }
 
@@ -22,7 +23,7 @@ interface UseGhostObjectProps {
  */
 export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pendingImage }: UseGhostObjectProps) {
     const isMobile = useIsMobile();
-    const ghostObj = useRef<any>(null);
+    const ghostObj = useRef<FabricObject | null>(null);
     const isInteracting = useRef(false);
     const isMouseOver = useRef(false);
     const lastPointer = useRef<{ x: number, y: number } | null>(null);
@@ -110,7 +111,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
 
         updateGhost();
 
-        const handleMouseMove = (opt: any) => {
+        const handleMouseMove = (opt: TPointerEventInfo<TPointerEvent>) => {
             if (isMobile) return;
 
             const pointer = fabricCanvas.getPointer(opt.e);
@@ -159,9 +160,10 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             updateGhost();
         };
 
-        const handleMouseDown = (opt: any) => {
+        const handleMouseDown = (opt: TPointerEventInfo<TPointerEvent>) => {
             // Interact only if clicking on a real object
-            if (opt.target && !opt.target.data?.isGhost) {
+            const target = opt.target as CustomFabricObject | undefined;
+            if (target && !target.data?.isGhost) {
                 isInteracting.current = true;
                 if (ghostObj.current) {
                     fabricCanvas.remove(ghostObj.current);
@@ -171,8 +173,8 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
         };
 
         const handleMouseUp = () => {
-            const activeObj = fabricCanvas.getActiveObject() as any;
-            if (activeObj && activeObj.isEditing) return;
+            const activeObj = fabricCanvas.getActiveObject();
+            if (activeObj && 'isEditing' in activeObj && activeObj.isEditing) return;
 
             if (isInteracting.current) {
                 isInteracting.current = false;
@@ -181,8 +183,8 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
         };
 
         const handleGlobalMouseUp = () => {
-            const activeObj = fabricCanvas.getActiveObject() as any;
-            if (activeObj && activeObj.isEditing) return;
+            const activeObj = fabricCanvas.getActiveObject();
+            if (activeObj && 'isEditing' in activeObj && activeObj.isEditing) return;
 
             if (isInteracting.current) {
                 isInteracting.current = false;
@@ -220,5 +222,5 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             }
             window.removeEventListener('mouseup', handleGlobalMouseUp);
         };
-    }, [fabricCanvas, updateGhost, isMobile]);
+    }, [fabricCanvas, updateGhost, isMobile, checkAndAddGhost]);
 }

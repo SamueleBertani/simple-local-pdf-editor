@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 import * as pdfjsLib from 'pdfjs-dist';
+import type { Canvas } from 'fabric';
 
 interface PDFState {
     pdfDocument: pdfjsLib.PDFDocumentProxy | null;
     pages: { viewport: pdfjsLib.PageViewport; pageNumber: number }[];
     scale: number;
-    canvases: Record<number, any>; // Keeping Record, but values should be treated as Canvas
+    canvases: Record<number, Canvas>;
     setPdfDocument: (doc: pdfjsLib.PDFDocumentProxy | null) => void;
     setPages: (pages: { viewport: pdfjsLib.PageViewport; pageNumber: number }[]) => void;
     setScale: (scale: number) => void;
-    registerCanvas: (pageIndex: number, canvas: any) => void;
+    registerCanvas: (pageIndex: number, canvas: Canvas) => void;
     unregisterCanvas: (pageIndex: number) => void;
 }
 

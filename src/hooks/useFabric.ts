@@ -36,19 +36,20 @@ export function useFabric({ width, height, scale }: UseFabricProps) {
         return () => {
             try {
                 canvas.dispose();
-            } catch (e) {
+            } catch {
                 // Ignore errors during disposal
             }
             setFabricCanvas(null);
         };
-    }, []); // Run once on mount (dimensions handled in separate effect to avoid full recreation if possible)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Handle Dimension/Scale Updates
     useEffect(() => {
         if (!fabricCanvas) return;
 
         fabricCanvas.setDimensions({ width, height });
-        fabricCanvas.setZoom(scale); // Optional: Match zoom if we want vector scaling behavior
+        fabricCanvas.setZoom(scale);
         fabricCanvas.requestRenderAll();
 
     }, [fabricCanvas, width, height, scale]);
