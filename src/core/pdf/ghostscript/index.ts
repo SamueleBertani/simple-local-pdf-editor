@@ -10,5 +10,5 @@ export type { GhostscriptModule } from './loader';
 export { ghostscriptCompress, estimateCompression, GHOSTSCRIPT_PRESETS } from './compressor';
 export type { GhostscriptPreset, GhostscriptCompressionOptions, GhostscriptCompressionResult } from './compressor';
 
-export { compressWithWorker, WorkerPool } from './workerClient';
+export { compressWithWorker, WorkerPool, terminateCachedWorker } from './workerClient';
 export type { CompressionProgress, WorkerCompressionResult } from './workerClient';

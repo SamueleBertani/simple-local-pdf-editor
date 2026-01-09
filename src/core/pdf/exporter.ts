@@ -2,6 +2,7 @@ import { PDFDocument } from 'pdf-lib';
 import JSZip from 'jszip';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { Canvas } from 'fabric';
+import { convertDataUrlToGrayscale } from './utils/grayscale';
 
 /**
  * Export quality options for controlling file size vs visual quality tradeoff.
@@ -76,44 +77,6 @@ export interface ExportResult {
 }
 
 /**
- * Applies grayscale conversion to a canvas for additional compression.
- * Uses luminance formula: 0.299*R + 0.587*G + 0.114*B
- */
-function applyGrayscaleToDataUrl(dataUrl: string): Promise<string> {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-
-            if (!ctx) {
-                resolve(dataUrl);
-                return;
-            }
-
-            ctx.drawImage(img, 0, 0);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-
-            for (let i = 0; i < data.length; i += 4) {
-                const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-                data[i] = gray;     // R
-                data[i + 1] = gray; // G
-                data[i + 2] = gray; // B
-                // Alpha (data[i + 3]) remains unchanged
-            }
-
-            ctx.putImageData(imageData, 0, 0);
-            resolve(canvas.toDataURL('image/jpeg', 0.85));
-        };
-        img.onerror = () => resolve(dataUrl);
-        img.src = dataUrl;
-    });
-}
-
-/**
  * Exports the current PDF document and its overlay canvases to a new PDF file.
  * This process involves:
  * 1. Loading the original PDF bytes.
@@ -154,7 +117,7 @@ export async function exportToPdf(
 
             // Apply grayscale conversion if enabled (reduces file size further)
             if (grayscale) {
-                dataUrl = await applyGrayscaleToDataUrl(dataUrl);
+                dataUrl = await convertDataUrlToGrayscale(dataUrl);
             }
 
             const image = format === 'jpeg' || grayscale
@@ -179,8 +142,8 @@ export async function exportToPdf(
     const exportedSize = pdfBytes.byteLength;
     const percentChange = ((exportedSize - originalSize) / originalSize) * 100;
 
-    // Cast to any to bypass strict BlobPart check if typed array mismatch occurs
-    downloadFile(new Blob([pdfBytes as any], { type: 'application/pdf' }), 'edited_document.pdf');
+    // Create a new Uint8Array to ensure BlobPart compatibility across environments
+    downloadFile(new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' }), 'edited_document.pdf');
 
     return { pdfBytes, originalSize, exportedSize, percentChange };
 }
@@ -215,8 +178,8 @@ export async function renderPageToCanvas(
 
     if (!context) throw new Error("Could not get canvas context");
 
-    // Cast to any to bypass strict typing issues with pdfjs-dist
-    await page.render({ canvasContext: context, viewport } as any).promise;
+    // @ts-expect-error pdfjs-dist types are stricter than runtime requirements
+    await page.render({ canvasContext: context, viewport }).promise;
 
     // 2. Render Overlay (Fabric items)
     if (overlayCanvas) {

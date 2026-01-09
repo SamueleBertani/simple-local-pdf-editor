@@ -26,8 +26,78 @@ export interface WorkerCompressionResult {
     compressionRatio: number;
 }
 
+/** Timeout for compression operations (5 minutes) */
+const COMPRESSION_TIMEOUT_MS = 5 * 60 * 1000;
+
+/** Time to keep idle worker alive before terminating (2 minutes) */
+const WORKER_IDLE_TIMEOUT_MS = 2 * 60 * 1000;
+
+/**
+ * Cached worker instance for reuse between compressions.
+ * Avoids reloading the ~20MB WASM module for each operation.
+ */
+let cachedWorker: Worker | null = null;
+let workerIdleTimer: ReturnType<typeof setTimeout> | null = null;
+let isWorkerBusy = false;
+
+/**
+ * Gets or creates a cached compression worker.
+ * The worker is reused between compressions to avoid WASM reload overhead.
+ */
+function getOrCreateWorker(): Worker {
+    // Clear any pending idle timeout since we're using the worker
+    if (workerIdleTimer) {
+        clearTimeout(workerIdleTimer);
+        workerIdleTimer = null;
+    }
+
+    if (!cachedWorker) {
+        cachedWorker = new Worker(
+            new URL('./worker.ts', import.meta.url),
+            { type: 'module' }
+        );
+    }
+
+    return cachedWorker;
+}
+
+/**
+ * Schedules the cached worker for termination after idle timeout.
+ * Called when compression completes to free resources if not used again.
+ */
+function scheduleWorkerCleanup(): void {
+    if (workerIdleTimer) {
+        clearTimeout(workerIdleTimer);
+    }
+
+    workerIdleTimer = setTimeout(() => {
+        if (cachedWorker && !isWorkerBusy) {
+            cachedWorker.terminate();
+            cachedWorker = null;
+        }
+        workerIdleTimer = null;
+    }, WORKER_IDLE_TIMEOUT_MS);
+}
+
+/**
+ * Forces immediate termination of the cached worker.
+ * Useful for error recovery or when the app is closing.
+ */
+export function terminateCachedWorker(): void {
+    if (workerIdleTimer) {
+        clearTimeout(workerIdleTimer);
+        workerIdleTimer = null;
+    }
+    if (cachedWorker) {
+        cachedWorker.terminate();
+        cachedWorker = null;
+    }
+    isWorkerBusy = false;
+}
+
 /**
  * Creates a new Ghostscript compression worker instance.
+ * @deprecated Use getOrCreateWorker() for better performance
  */
 function createCompressionWorker(): Worker {
     return new Worker(
@@ -58,26 +128,36 @@ export function compressWithWorker(
     onProgress?: (progress: CompressionProgress) => void
 ): Promise<WorkerCompressionResult> {
     return new Promise((resolve, reject) => {
-        const worker = createCompressionWorker();
+        // Use cached worker for better performance (avoids WASM reload)
+        const worker = getOrCreateWorker();
         const requestId = generateRequestId();
         let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-        // Set a timeout for the entire operation (5 minutes max)
-        const TIMEOUT_MS = 5 * 60 * 1000;
-        timeoutId = setTimeout(() => {
-            worker.terminate();
-            reject(new Error('Ghostscript compression timed out after 5 minutes'));
-        }, TIMEOUT_MS);
+        isWorkerBusy = true;
 
-        const cleanup = () => {
+        timeoutId = setTimeout(() => {
+            // On timeout, terminate and clear the cached worker
+            terminateCachedWorker();
+            reject(new Error('Ghostscript compression timed out after 5 minutes'));
+        }, COMPRESSION_TIMEOUT_MS);
+
+        const cleanup = (terminateWorker: boolean = false) => {
             if (timeoutId) {
                 clearTimeout(timeoutId);
                 timeoutId = null;
             }
-            worker.terminate();
+            isWorkerBusy = false;
+
+            if (terminateWorker) {
+                // Terminate on error to ensure clean state
+                terminateCachedWorker();
+            } else {
+                // Schedule cleanup after idle period
+                scheduleWorkerCleanup();
+            }
         };
 
-        worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
+        const handleMessage = (event: MessageEvent<WorkerResponse>) => {
             const response = event.data;
 
             // Ignore messages from other requests
@@ -93,7 +173,9 @@ export function compressWithWorker(
 
                 case 'result': {
                     const result = response as WorkerResultResponse;
-                    cleanup();
+                    worker.removeEventListener('message', handleMessage);
+                    worker.removeEventListener('error', handleError);
+                    cleanup(false);
                     resolve({
                         pdfBytes: result.pdfBytes,
                         originalSize: result.originalSize,
@@ -104,16 +186,23 @@ export function compressWithWorker(
                 }
 
                 case 'error':
-                    cleanup();
+                    worker.removeEventListener('message', handleMessage);
+                    worker.removeEventListener('error', handleError);
+                    cleanup(true);
                     reject(new Error(response.error));
                     break;
             }
         };
 
-        worker.onerror = (error) => {
-            cleanup();
+        const handleError = (error: ErrorEvent) => {
+            worker.removeEventListener('message', handleMessage);
+            worker.removeEventListener('error', handleError);
+            cleanup(true);
             reject(new Error(`Worker error: ${error.message}`));
         };
+
+        worker.addEventListener('message', handleMessage);
+        worker.addEventListener('error', handleError);
 
         // Send compression request
         const request: WorkerRequest = {

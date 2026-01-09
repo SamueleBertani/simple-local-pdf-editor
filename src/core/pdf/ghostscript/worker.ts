@@ -6,6 +6,7 @@
  */
 
 import type { GhostscriptPreset } from './compressor';
+import { GS_WASM_CDN_PRIMARY } from './config';
 
 // Worker message types
 export interface WorkerRequest {
@@ -40,9 +41,6 @@ export interface WorkerErrorResponse {
 
 export type WorkerResponse = WorkerProgressResponse | WorkerResultResponse | WorkerErrorResponse;
 
-// CDN URL for Ghostscript WASM
-const GS_WASM_CDN_URL = 'https://cdn.jsdelivr.net/npm/@aspect-build/aspect-js@0.0.2/gs.mjs';
-
 interface GhostscriptModule {
     FS: {
         writeFile: (path: string, data: Uint8Array) => void;
@@ -63,7 +61,7 @@ async function loadGhostscriptInWorker(): Promise<GhostscriptModule> {
     const initGhostscript = await import(
         /* webpackIgnore: true */
         /* @vite-ignore */
-        GS_WASM_CDN_URL
+        GS_WASM_CDN_PRIMARY
     );
     const module = await initGhostscript.default();
     if (!module) {

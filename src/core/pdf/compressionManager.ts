@@ -18,6 +18,31 @@ import type { GhostscriptPreset } from './ghostscript/compressor';
 import { reencodeCompression, type CompressionQuality } from './compressor';
 import { exportToPdf, type ExportQualityOptions } from './exporter';
 
+// ============================================================================
+// Constants
+// ============================================================================
+
+/** Maximum PDF file size for browser compression (100MB) */
+const MAX_PDF_SIZE_BYTES = 100 * 1024 * 1024;
+
+/** Progress percentage when preparation starts */
+const PROGRESS_PREPARING = 5;
+
+/** Progress percentage when getting PDF data */
+const PROGRESS_GETTING_DATA = 10;
+
+/** Progress percentage when Ghostscript starts loading */
+const PROGRESS_GS_LOADING = 30;
+
+/** Ghostscript progress scaling factor (0.65 = 65% of remaining progress) */
+const PROGRESS_GS_SCALE = 0.65;
+
+/** Re-encode progress scaling factor (0.85 = 85% of remaining progress) */
+const PROGRESS_REENCODE_SCALE = 0.85;
+
+/** Progress percentage when complete */
+const PROGRESS_COMPLETE = 100;
+
 /**
  * Compression strategy types
  */
@@ -187,15 +212,29 @@ export async function compressPDF(
     const config = LEVEL_CONFIGS[level];
     const warnings: string[] = [];
 
+    // Check PDF size before processing
+    const pdfData = await pdfProxy.getData();
+    const pdfSize = pdfData.byteLength;
+
+    if (pdfSize > MAX_PDF_SIZE_BYTES) {
+        const sizeMB = Math.round(pdfSize / (1024 * 1024));
+        const maxMB = Math.round(MAX_PDF_SIZE_BYTES / (1024 * 1024));
+        throw new Error(
+            `PDF file is too large for browser compression (${sizeMB}MB). ` +
+            `Maximum supported size is ${maxMB}MB. ` +
+            `Please use a desktop application for larger files.`
+        );
+    }
+
     // Select strategy
     const strategy = selectStrategy(forceStrategy);
 
-    onProgress?.(5, 'Preparing...');
+    onProgress?.(PROGRESS_PREPARING, 'Preparing...');
 
     // Strategy 1: Ghostscript WASM (best compression, desktop only)
     if (strategy === 'ghostscript') {
         try {
-            onProgress?.(10, 'Getting PDF data...');
+            onProgress?.(PROGRESS_GETTING_DATA, 'Getting PDF data...');
 
             // First, export PDF with annotations embedded
             const annotatedResult = await exportToPdf(pdfProxy, canvases, {
@@ -206,19 +245,19 @@ export async function compressPDF(
                 description: ''
             });
 
-            onProgress?.(30, 'Loading Ghostscript...');
+            onProgress?.(PROGRESS_GS_LOADING, 'Loading Ghostscript...');
 
             // Compress with Ghostscript worker
             const gsResult = await compressWithWorker(
                 annotatedResult.pdfBytes,
                 config.ghostscript,
                 (progress: CompressionProgress) => {
-                    const scaledProgress = 30 + (progress.progress * 0.65);
+                    const scaledProgress = PROGRESS_GS_LOADING + (progress.progress * PROGRESS_GS_SCALE);
                     onProgress?.(scaledProgress, progress.stage);
                 }
             );
 
-            onProgress?.(100, 'Complete');
+            onProgress?.(PROGRESS_COMPLETE, 'Complete');
 
             return {
                 pdfBytes: gsResult.pdfBytes,
@@ -230,7 +269,8 @@ export async function compressPDF(
                 warnings
             };
         } catch (error) {
-            warnings.push(`Ghostscript failed: ${error}. Falling back to re-encoding.`);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            warnings.push(`Ghostscript failed: ${errorMsg}. Falling back to re-encoding.`);
             // Fall through to re-encoding
         }
     }
@@ -238,18 +278,18 @@ export async function compressPDF(
     // Strategy 2: Re-encoding (good compression, works everywhere)
     if (strategy === 'reencode' || warnings.length > 0) {
         try {
-            onProgress?.(10, 'Re-encoding pages...');
+            onProgress?.(PROGRESS_GETTING_DATA, 'Re-encoding pages...');
 
             const result = await reencodeCompression(pdfProxy, canvases, {
                 quality: config.reencode,
                 grayscale,
                 onProgress: (progress, currentPage, totalPages) => {
-                    const scaledProgress = 10 + (progress * 0.85);
+                    const scaledProgress = PROGRESS_GETTING_DATA + (progress * PROGRESS_REENCODE_SCALE);
                     onProgress?.(scaledProgress, `Page ${currentPage}/${totalPages}`);
                 }
             });
 
-            onProgress?.(100, 'Complete');
+            onProgress?.(PROGRESS_COMPLETE, 'Complete');
 
             return {
                 pdfBytes: result.pdfBytes,
@@ -261,19 +301,20 @@ export async function compressPDF(
                 warnings
             };
         } catch (error) {
-            warnings.push(`Re-encoding failed: ${error}. Falling back to basic compression.`);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            warnings.push(`Re-encoding failed: ${errorMsg}. Falling back to basic compression.`);
         }
     }
 
     // Strategy 3: Basic compression (fallback)
-    onProgress?.(10, 'Applying basic compression...');
+    onProgress?.(PROGRESS_GETTING_DATA, 'Applying basic compression...');
 
     const basicResult = await exportToPdf(pdfProxy, canvases, {
         ...config.basic,
         grayscale
     });
 
-    onProgress?.(100, 'Complete');
+    onProgress?.(PROGRESS_COMPLETE, 'Complete');
 
     return {
         pdfBytes: basicResult.pdfBytes,
@@ -290,7 +331,8 @@ export async function compressPDF(
  * Downloads compressed PDF bytes as a file.
  */
 export function downloadPDF(pdfBytes: Uint8Array, filename: string = 'compressed.pdf'): void {
-    const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
+    // Create a new Uint8Array to ensure BlobPart compatibility across environments
+    const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

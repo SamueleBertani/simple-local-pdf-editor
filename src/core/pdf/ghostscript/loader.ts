@@ -5,6 +5,8 @@
  * The ~20MB WASM file is only downloaded when compression is actually requested.
  */
 
+import { GS_WASM_CDN_PRIMARY, GS_WASM_CDN_BACKUP } from './config';
+
 export interface GhostscriptModule {
     FS: {
         writeFile: (path: string, data: Uint8Array) => void;
@@ -16,17 +18,6 @@ export interface GhostscriptModule {
 
 let gsModule: GhostscriptModule | null = null;
 let loadingPromise: Promise<GhostscriptModule | null> | null = null;
-
-/**
- * CDN URL for Ghostscript WASM module.
- * Using jsDelivr for reliable CDN delivery.
- */
-const GS_WASM_CDN_URL = 'https://cdn.jsdelivr.net/npm/@aspect-build/aspect-js@0.0.2/gs.mjs';
-
-/**
- * Alternative CDN URL (backup)
- */
-const GS_WASM_CDN_BACKUP = 'https://unpkg.com/@aspect-build/aspect-js@0.0.2/gs.mjs';
 
 /**
  * Lazy-loads the Ghostscript WASM module.
@@ -55,12 +46,13 @@ export async function loadGhostscript(): Promise<GhostscriptModule> {
             const initGhostscript = await import(
                 /* webpackIgnore: true */
                 /* @vite-ignore */
-                GS_WASM_CDN_URL
+                GS_WASM_CDN_PRIMARY
             );
             gsModule = await initGhostscript.default();
             return gsModule;
         } catch (primaryError) {
-            console.warn('Primary Ghostscript CDN failed, trying backup...', primaryError);
+            const primaryErrorMsg = primaryError instanceof Error ? primaryError.message : String(primaryError);
+            console.warn('Primary Ghostscript CDN failed, trying backup...', primaryErrorMsg);
 
             try {
                 // Try backup CDN
@@ -72,10 +64,11 @@ export async function loadGhostscript(): Promise<GhostscriptModule> {
                 gsModule = await initGhostscript.default();
                 return gsModule;
             } catch (backupError) {
+                const backupErrorMsg = backupError instanceof Error ? backupError.message : String(backupError);
                 loadingPromise = null;
                 throw new Error(
                     `Failed to load Ghostscript WASM from CDN. ` +
-                    `Primary error: ${primaryError}. Backup error: ${backupError}`
+                    `Primary error: ${primaryErrorMsg}. Backup error: ${backupErrorMsg}`
                 );
             }
         }
@@ -84,6 +77,28 @@ export async function loadGhostscript(): Promise<GhostscriptModule> {
     const result = await loadingPromise;
     if (result) return result;
     throw new Error('Ghostscript module failed to load');
+}
+
+/**
+ * Detects if the current device is a mobile/touch device.
+ * Uses multiple detection methods for better accuracy.
+ */
+function detectMobileDevice(): boolean {
+    // Method 1: Touch capability (most reliable)
+    const hasCoarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches ?? false;
+    const hasTouchScreen = navigator.maxTouchPoints > 0;
+
+    // Method 2: Screen size heuristic (tablets and phones typically < 1024px width)
+    const isSmallScreen = window.screen?.width < 1024;
+
+    // Method 3: User-Agent fallback (less reliable but catches edge cases)
+    const mobileUserAgentPattern = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i;
+    const hasMobileUserAgent = mobileUserAgentPattern.test(navigator.userAgent);
+
+    // Consider mobile if:
+    // - Has coarse pointer (touch-primary device) AND touch screen
+    // - OR has mobile user agent AND small screen
+    return (hasCoarsePointer && hasTouchScreen) || (hasMobileUserAgent && isSmallScreen);
 }
 
 /**
@@ -105,10 +120,7 @@ export function canUseGhostscriptWASM(): boolean {
     }
 
     // Check if mobile device (WASM is too heavy for mobile)
-    const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-    );
-    if (isMobile) {
+    if (detectMobileDevice()) {
         return false;
     }
 
@@ -132,9 +144,7 @@ export function getDeviceCapabilities(): {
 } {
     const hasWebAssembly = typeof WebAssembly === 'object';
     const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-    const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-    );
+    const isMobile = detectMobileDevice();
     const hasWorkerSupport = typeof Worker !== 'undefined';
 
     return {

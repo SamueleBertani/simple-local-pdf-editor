@@ -1,6 +1,7 @@
 import { PDFDocument } from 'pdf-lib';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import type { Canvas } from 'fabric';
+import { applyGrayscaleToCanvas } from './utils/grayscale';
 
 /**
  * Compression quality presets mapping to DPI and JPEG quality settings.
@@ -35,27 +36,6 @@ export interface CompressionResult {
     compressionRatio: number;
     /** Method used for compression */
     method: string;
-}
-
-/**
- * Applies grayscale conversion to a canvas.
- * Uses luminance formula: 0.299*R + 0.587*G + 0.114*B
- */
-function applyGrayscaleToCanvas(canvas: HTMLCanvasElement): void {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    for (let i = 0; i < data.length; i += 4) {
-        const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-        data[i] = gray;     // R
-        data[i + 1] = gray; // G
-        data[i + 2] = gray; // B
-    }
-
-    ctx.putImageData(imageData, 0, 0);
 }
 
 /**
@@ -111,8 +91,8 @@ export async function reencodeCompression(
         }
 
         // 1. Render PDF page to canvas
-        // Cast to any to bypass strict typing issues with pdfjs-dist
-        await page.render({ canvasContext: ctx, viewport } as any).promise;
+        // @ts-expect-error pdfjs-dist types are stricter than runtime requirements
+        await page.render({ canvasContext: ctx, viewport }).promise;
 
         // 2. Render overlay annotations if present
         const overlay = canvases[pageNum];
@@ -175,8 +155,8 @@ export async function reencodeCompression(
  * Downloads a PDF blob with the given filename.
  */
 export function downloadCompressedPdf(pdfBytes: Uint8Array, filename: string = 'compressed_document.pdf'): void {
-    // Cast to any to bypass strict BlobPart check if typed array mismatch occurs
-    const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
+    // Create a new Uint8Array to ensure BlobPart compatibility across environments
+    const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
