@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Download, Moon, Sun, Scan } from 'lucide-react';
+import { Download, FileDown, Moon, Sun, Scan } from 'lucide-react';
 import { usePDFStore } from './store/usePDFStore';
 import { PDFViewer } from './components/viewer/PDFViewer';
 import { Toolbar } from './components/toolbar/Toolbar';
@@ -51,6 +51,7 @@ function App() {
     startScannerFlow,
     handleScannerDownload,
     closeScannerModal,
+    handleQuickSavePDF,
     handleExportPDF,
     closeExportModal,
     handleExportWithQuality
@@ -100,10 +101,16 @@ function App() {
                 aria-label="Export as scanned images"
               >
                 <Scan className="w-4 h-4" />
-                Scan
               </button>
               <button
                 onClick={handleExportPDF}
+                className="flex items-center gap-1 p-2 text-slate-700 dark:text-slate-300 font-medium text-sm bg-slate-100 dark:bg-slate-800 rounded-lg"
+                aria-label="Minimize PDF"
+              >
+                <FileDown className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleQuickSavePDF}
                 className="flex items-center gap-1 p-2 text-white font-medium text-sm bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm"
                 aria-label="Save PDF"
               >
@@ -119,6 +126,7 @@ function App() {
           <DesktopSidebar
             theme={theme}
             onToggleTheme={toggleTheme}
+            onQuickSavePDF={handleQuickSavePDF}
             onExportPDF={handleExportPDF}
             onScannerExport={startScannerFlow}
           />

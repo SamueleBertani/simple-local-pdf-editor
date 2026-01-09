@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Keyboard, Moon, Sun } from 'lucide-react';
+import { Download, FileDown, Keyboard, Moon, Sun } from 'lucide-react';
 import { Toolbar } from '../toolbar/Toolbar';
 import { ShortcutsModal } from '../modals/ShortcutsModal';
 
@@ -11,7 +11,9 @@ interface DesktopSidebarProps {
   theme: 'light' | 'dark';
   /** Handler to toggle between light and dark themes */
   onToggleTheme: () => void;
-  /** Handler for PDF export action */
+  /** Handler for quick PDF save (immediate download) */
+  onQuickSavePDF: () => void;
+  /** Handler for PDF export with compression options */
   onExportPDF: () => void;
   /** Handler for scanner export action */
   onScannerExport: () => void;
@@ -38,6 +40,7 @@ interface DesktopSidebarProps {
 export function DesktopSidebar({
   theme,
   onToggleTheme,
+  onQuickSavePDF,
   onExportPDF,
   onScannerExport
 }: DesktopSidebarProps) {
@@ -75,12 +78,21 @@ export function DesktopSidebar({
       {/* Actions */}
       <div className="flex flex-col gap-3 w-full px-4">
         <button
-          onClick={onExportPDF}
+          onClick={onQuickSavePDF}
           className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
-          title="Save PDF"
+          title="Save PDF (high quality)"
         >
           <Download className="w-5 h-5" />
           <span className="text-sm font-medium">Save PDF</span>
+        </button>
+
+        <button
+          onClick={onExportPDF}
+          className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
+          title="Minimize PDF (compression options)"
+        >
+          <FileDown className="w-5 h-5" />
+          <span className="text-sm font-medium">Minimize PDF</span>
         </button>
 
         <button

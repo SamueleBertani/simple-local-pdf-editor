@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { usePDFStore } from '../../store/usePDFStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
-import { exportToPdf } from '../../core/pdf/exporter';
+import { exportToPdf, EXPORT_QUALITY_PRESETS } from '../../core/pdf/exporter';
 import type { ExportQualityOptions } from '../../core/pdf/exporter';
 import { compressPDF, downloadPDF, selectStrategy } from '../../core/pdf/compressionManager';
 import type { CompressionLevel } from '../../core/pdf/compressionManager';
@@ -46,7 +46,9 @@ export interface UsePDFExportReturn {
     exportProgress: number;
     /** Current export stage description */
     exportStage: string;
-    /** Opens the export quality modal */
+    /** Saves the PDF immediately with high quality (no modal) */
+    handleQuickSavePDF: () => Promise<void>;
+    /** Opens the export quality modal for compression options */
     handleExportPDF: () => void;
     /** Closes the export modal */
     closeExportModal: () => void;
@@ -80,6 +82,42 @@ export function usePDFExport(): UsePDFExportReturn {
     const closeExportModal = useCallback(() => {
         setIsExportModalOpen(false);
     }, []);
+
+    /**
+     * Quickly saves the PDF with high quality, no modal.
+     * Ideal for users who just want to save their edits immediately.
+     */
+    const handleQuickSavePDF = useCallback(async () => {
+        if (!pdfDocument) return;
+        setIsExporting(true);
+        setExportProgress(0);
+        setExportStage('Saving PDF...');
+        try {
+            triggerConfetti();
+            setExportProgress(50);
+            const result = await exportToPdf(pdfDocument, canvases, EXPORT_QUALITY_PRESETS.high);
+            setExportProgress(100);
+
+            const originalFormatted = formatFileSize(result.originalSize);
+            const exportedFormatted = formatFileSize(result.exportedSize);
+            const changeSign = result.percentChange >= 0 ? '+' : '';
+            const changeText = `${changeSign}${result.percentChange.toFixed(1)}%`;
+
+            addNotification({
+                type: result.percentChange <= 0 ? 'success' : 'info',
+                title: 'PDF Saved',
+                message: `${originalFormatted} → ${exportedFormatted} (${changeText})`
+            });
+        } catch {
+            addNotification({
+                type: 'error',
+                title: 'Save Error',
+                message: 'Error saving the PDF'
+            });
+        } finally {
+            setIsExporting(false);
+        }
+    }, [pdfDocument, canvases, addNotification]);
 
     /**
      * Exports the PDF with the specified quality options.
@@ -155,6 +193,7 @@ export function usePDFExport(): UsePDFExportReturn {
         isExporting,
         exportProgress,
         exportStage,
+        handleQuickSavePDF,
         handleExportPDF,
         closeExportModal,
         handleExportWithQuality
