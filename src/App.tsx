@@ -57,7 +57,10 @@ function App() {
     handleExportWithQuality
   } = useExportHandlers();
 
-  useShortcuts();
+  useShortcuts({
+    onExportPDF: handleExportPDF,
+    onScannerExport: startScannerFlow
+  });
 
   // Keep scale in ref to avoid re-registering wheel listener on every scale change
   const scaleRef = useRef(scale);
