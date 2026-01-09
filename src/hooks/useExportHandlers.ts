@@ -8,6 +8,11 @@ import { compressPDF, downloadPDF, selectStrategy } from '../core/pdf/compressio
 import type { CompressionLevel } from '../core/pdf/compressionManager';
 import confetti from 'canvas-confetti';
 
+/** Bytes in a kilobyte */
+const BYTES_PER_KB = 1024;
+/** Bytes in a megabyte */
+const BYTES_PER_MB = BYTES_PER_KB * BYTES_PER_KB;
+
 /**
  * Return type for the useExportHandlers hook.
  */
@@ -52,9 +57,9 @@ interface UseExportHandlersReturn {
  * @returns Formatted string (e.g., "1.5 MB")
  */
 function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  if (bytes < BYTES_PER_KB) return `${bytes} B`;
+  if (bytes < BYTES_PER_MB) return `${(bytes / BYTES_PER_KB).toFixed(1)} KB`;
+  return `${(bytes / BYTES_PER_MB).toFixed(2)} MB`;
 }
 
 /**
@@ -131,8 +136,7 @@ export function useExportHandlers(): UseExportHandlersReturn {
       triggerConfetti();
       await exportToImages(pdfDocument, canvases, options);
       setIsScannerOpen(false);
-    } catch (e) {
-      console.error(e);
+    } catch {
       addNotification({
         type: 'error',
         title: 'Scan Error',
@@ -214,8 +218,7 @@ export function useExportHandlers(): UseExportHandlersReturn {
         title: 'PDF Exported',
         message: `${originalFormatted} → ${exportedFormatted} (${changeText})${strategyInfo}`
       });
-    } catch (e) {
-      console.error(e);
+    } catch {
       addNotification({
         type: 'error',
         title: 'Export Error',
