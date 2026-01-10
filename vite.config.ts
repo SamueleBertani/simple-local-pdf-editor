@@ -29,4 +29,15 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-pdf': ['pdfjs-dist', 'pdf-lib'],
+          'vendor-canvas': ['fabric'],
+          'vendor-react': ['react', 'react-dom'],
+        }
+      }
+    }
+  }
 })
