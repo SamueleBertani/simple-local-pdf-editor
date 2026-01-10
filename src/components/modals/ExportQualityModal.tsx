@@ -118,7 +118,7 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing, pr
                                             : 'bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300'
                                         : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                                 }`}>
-                                    {settings.dpi} DPI
+                                    {isReencodeOption ? 'Flattened text' : 'Selectable text'}
                                 </span>
                             </div>
                             <p className={`text-sm mt-1 ${

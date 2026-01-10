@@ -8,10 +8,10 @@ import { applyGrayscaleToCanvas } from './utils/grayscale';
  * Lower DPI = smaller file size but less detail.
  */
 export const COMPRESSION_QUALITY_SETTINGS = {
-    screen: { dpi: 72, jpegQuality: 0.4, label: 'Screen', description: 'Lowest size, for viewing only' },
-    ebook: { dpi: 150, jpegQuality: 0.6, label: 'E-book', description: 'Good for digital reading' },
-    printer: { dpi: 200, jpegQuality: 0.75, label: 'Printer', description: 'Suitable for home printing' },
-    prepress: { dpi: 300, jpegQuality: 0.9, label: 'Prepress', description: 'Professional print quality' }
+    screen: { dpi: 72, jpegQuality: 0.4, label: 'Smallest', description: 'Full page re-encoded at 72 DPI' },
+    ebook: { dpi: 150, jpegQuality: 0.6, label: 'Compact', description: 'Full page re-encoded at 150 DPI' },
+    printer: { dpi: 200, jpegQuality: 0.75, label: 'Balanced', description: 'Images compressed to JPEG 75%' },
+    prepress: { dpi: 300, jpegQuality: 0.9, label: 'High Quality', description: 'Images compressed to JPEG 90%' }
 } as const;
 
 export type CompressionQuality = keyof typeof COMPRESSION_QUALITY_SETTINGS;
