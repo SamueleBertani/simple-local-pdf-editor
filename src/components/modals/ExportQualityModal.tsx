@@ -138,7 +138,7 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing, pr
             {usesReencode && (
                 <div className="mb-6 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800">
                     <p className="text-xs text-amber-700 dark:text-amber-300">
-                        Il testo non sarà più selezionabile dopo la compressione.
+                        Text will no longer be selectable after compression.
                     </p>
                 </div>
             )}

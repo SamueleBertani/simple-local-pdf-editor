@@ -4,10 +4,11 @@ import type { Canvas } from 'fabric';
 
 interface PDFState {
     pdfDocument: pdfjsLib.PDFDocumentProxy | null;
+    fileName: string | null;
     pages: { viewport: pdfjsLib.PageViewport; pageNumber: number }[];
     scale: number;
     canvases: Record<number, Canvas>;
-    setPdfDocument: (doc: pdfjsLib.PDFDocumentProxy | null) => void;
+    setPdfDocument: (doc: pdfjsLib.PDFDocumentProxy | null, fileName?: string) => void;
     setPages: (pages: { viewport: pdfjsLib.PageViewport; pageNumber: number }[]) => void;
     setScale: (scale: number) => void;
     registerCanvas: (pageIndex: number, canvas: Canvas) => void;
@@ -19,10 +20,11 @@ interface PDFState {
  */
 export const usePDFStore = create<PDFState>((set) => ({
     pdfDocument: null,
+    fileName: null,
     pages: [],
     scale: 1,
     canvases: {},
-    setPdfDocument: (doc) => set({ pdfDocument: doc }),
+    setPdfDocument: (doc, fileName) => set({ pdfDocument: doc, fileName: fileName ?? null }),
     setPages: (pages) => set({ pages }),
     setScale: (scale) => set({ scale }),
     registerCanvas: (pageIndex, canvas) =>

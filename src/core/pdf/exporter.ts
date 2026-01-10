@@ -96,7 +96,8 @@ export interface ExportResult {
 export async function exportToPdf(
     pdfProxy: PDFDocumentProxy,
     canvases: Record<number, Canvas>,
-    qualityOptions: ExportQualityOptions = DEFAULT_EXPORT_QUALITY
+    qualityOptions: ExportQualityOptions = DEFAULT_EXPORT_QUALITY,
+    fileName?: string
 ): Promise<ExportResult> {
     const existingPdfBytes = await pdfProxy.getData();
     const originalSize = existingPdfBytes.byteLength;
@@ -146,7 +147,8 @@ export async function exportToPdf(
     const percentChange = ((exportedSize - originalSize) / originalSize) * 100;
 
     // Create a new Uint8Array to ensure BlobPart compatibility across environments
-    downloadFile(new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' }), 'edited_document.pdf');
+    const outputFileName = fileName ? `${fileName}.pdf` : 'document.pdf';
+    downloadFile(new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' }), outputFileName);
 
     return { pdfBytes, originalSize, exportedSize, percentChange };
 }
@@ -211,7 +213,8 @@ export async function renderPageToCanvas(
 export async function exportToImages(
     pdfProxy: PDFDocumentProxy,
     canvases: Record<number, Canvas>,
-    scannerOptions?: ScannerOptions
+    scannerOptions?: ScannerOptions,
+    fileName?: string
 ) {
     const isSinglePage = pdfProxy.numPages === 1;
     const zip = new JSZip();
@@ -237,7 +240,10 @@ export async function exportToImages(
         const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
         if (blob) {
             if (isSinglePage) {
-                downloadFile(blob, scannerOptions ? 'scanned_page.png' : 'edited_page.png');
+                const singleFileName = scannerOptions
+                    ? (fileName ? `${fileName}_scanned.png` : 'scanned_page.png')
+                    : (fileName ? `${fileName}.png` : 'page.png');
+                downloadFile(blob, singleFileName);
                 return; // Exit, no zip
             } else {
                 zip.file(`page_${i}.png`, blob);
@@ -247,6 +253,9 @@ export async function exportToImages(
 
     // Generate zip
     const content = await zip.generateAsync({ type: 'blob' });
-    downloadFile(content, scannerOptions ? 'scanned_export.zip' : 'pages_export.zip');
+    const zipFileName = scannerOptions
+        ? (fileName ? `${fileName}_scanned.zip` : 'scanned_export.zip')
+        : (fileName ? `${fileName}.zip` : 'pages_export.zip');
+    downloadFile(content, zipFileName);
 }
 

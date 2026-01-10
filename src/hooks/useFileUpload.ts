@@ -79,7 +79,9 @@ export function useFileUpload(): UseFileUploadReturn {
     });
     const doc = await loadingTask.promise;
 
-    setPdfDocument(doc);
+    // Extract filename without extension
+    const fileNameWithoutExt = file.name.replace(/\.pdf$/i, '');
+    setPdfDocument(doc, fileNameWithoutExt);
   }, [setPdfDocument, addNotification]);
 
   const handleFileUpload = useCallback(async (event: ChangeEvent<HTMLInputElement>) => {

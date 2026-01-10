@@ -66,7 +66,7 @@ export interface UsePDFExportReturn {
  * @returns Object containing export state and handler functions
  */
 export function usePDFExport(): UsePDFExportReturn {
-    const { pdfDocument, canvases } = usePDFStore();
+    const { pdfDocument, canvases, fileName } = usePDFStore();
     const { addNotification } = useNotificationStore();
 
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -95,7 +95,7 @@ export function usePDFExport(): UsePDFExportReturn {
         try {
             triggerConfetti();
             setExportProgress(50);
-            const result = await exportToPdf(pdfDocument, canvases, EXPORT_QUALITY_PRESETS.high);
+            const result = await exportToPdf(pdfDocument, canvases, EXPORT_QUALITY_PRESETS.high, fileName ?? undefined);
             setExportProgress(100);
 
             const originalFormatted = formatFileSize(result.originalSize);
@@ -147,14 +147,16 @@ export function usePDFExport(): UsePDFExportReturn {
                     }
                 });
 
-                downloadPDF(result.pdfBytes, 'compressed_document.pdf');
+                const outputFileName = fileName ? `${fileName}_minimized.pdf` : 'document_minimized.pdf';
+                downloadPDF(result.pdfBytes, outputFileName);
                 originalSize = result.originalSize;
                 exportedSize = result.compressedSize;
                 percentChange = -result.compressionRatio * 100;
             } else {
                 setExportStage('Exporting PDF...');
                 setExportProgress(50);
-                const result = await exportToPdf(pdfDocument, canvases, options);
+                const outputName = fileName ? `${fileName}_minimized` : 'document_minimized';
+                const result = await exportToPdf(pdfDocument, canvases, options, outputName);
                 originalSize = result.originalSize;
                 exportedSize = result.exportedSize;
                 percentChange = result.percentChange;

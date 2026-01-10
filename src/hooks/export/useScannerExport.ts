@@ -44,7 +44,7 @@ export interface UseScannerExportReturn {
  * @returns Object containing scanner state and handler functions
  */
 export function useScannerExport(): UseScannerExportReturn {
-    const { pdfDocument, canvases } = usePDFStore();
+    const { pdfDocument, canvases, fileName } = usePDFStore();
     const { addNotification } = useNotificationStore();
 
     const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -70,7 +70,7 @@ export function useScannerExport(): UseScannerExportReturn {
         setIsProcessing(true);
         try {
             triggerConfetti();
-            await exportToImages(pdfDocument, canvases, options);
+            await exportToImages(pdfDocument, canvases, options, fileName ?? undefined);
             setIsScannerOpen(false);
         } catch {
             addNotification({
