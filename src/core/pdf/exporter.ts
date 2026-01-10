@@ -5,7 +5,6 @@ import type { Canvas } from 'fabric';
 import { convertDataUrlToGrayscale } from './utils/grayscale';
 import { applyScannerEffect } from '../image/scannerEffect';
 import type { ScannerOptions } from '../image/scannerEffect';
-import { downloadFile } from '../../utils/download';
 
 /**
  * Export quality options for controlling file size vs visual quality tradeoff.
@@ -96,8 +95,7 @@ export interface ExportResult {
 export async function exportToPdf(
     pdfProxy: PDFDocumentProxy,
     canvases: Record<number, Canvas>,
-    qualityOptions: ExportQualityOptions = DEFAULT_EXPORT_QUALITY,
-    fileName?: string
+    qualityOptions: ExportQualityOptions = DEFAULT_EXPORT_QUALITY
 ): Promise<ExportResult> {
     const existingPdfBytes = await pdfProxy.getData();
     const originalSize = existingPdfBytes.byteLength;
@@ -145,10 +143,6 @@ export async function exportToPdf(
     });
     const exportedSize = pdfBytes.byteLength;
     const percentChange = ((exportedSize - originalSize) / originalSize) * 100;
-
-    // Create a new Uint8Array to ensure BlobPart compatibility across environments
-    const outputFileName = fileName ? `${fileName}.pdf` : 'document.pdf';
-    downloadFile(new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' }), outputFileName);
 
     return { pdfBytes, originalSize, exportedSize, percentChange };
 }
@@ -200,22 +194,30 @@ export async function renderPageToCanvas(
     return canvas;
 }
 
+/** Result of image export */
+export interface ImageExportResult {
+    /** The exported blob (single image or zip) */
+    blob: Blob;
+    /** Whether this is a single image or a zip of multiple images */
+    isSinglePage: boolean;
+}
+
 /**
  * Exports the PDF pages as images (PNG), optionally applying "Scanner Effects".
- * If multiple pages are exported, downloads a ZIP file.
- * If scanner effects are enabled, randomizes certain parameters (like tilt) per page 
+ * Returns a blob (single PNG or ZIP for multiple pages).
+ * If scanner effects are enabled, randomizes certain parameters (like tilt) per page
  * to create a naturally imperfect batch scan look.
- * 
+ *
  * @param pdfProxy - The source PDF document.
  * @param canvases - A record of overlay canvases.
  * @param scannerOptions - Optional configuration for scanner effects.
+ * @returns Export result with blob and metadata.
  */
 export async function exportToImages(
     pdfProxy: PDFDocumentProxy,
     canvases: Record<number, Canvas>,
-    scannerOptions?: ScannerOptions,
-    fileName?: string
-) {
+    scannerOptions?: ScannerOptions
+): Promise<ImageExportResult> {
     const isSinglePage = pdfProxy.numPages === 1;
     const zip = new JSZip();
 
@@ -236,26 +238,19 @@ export async function exportToImages(
             canvas = await applyScannerEffect(canvas, pageOptions);
         }
 
-        // 3. Handle Output
+        // Handle Output
         const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
         if (blob) {
             if (isSinglePage) {
-                const singleFileName = scannerOptions
-                    ? (fileName ? `${fileName}_scanned.png` : 'scanned_page.png')
-                    : (fileName ? `${fileName}.png` : 'page.png');
-                downloadFile(blob, singleFileName);
-                return; // Exit, no zip
+                return { blob, isSinglePage: true };
             } else {
                 zip.file(`page_${i}.png`, blob);
             }
         }
     }
 
-    // Generate zip
+    // Generate zip for multiple pages
     const content = await zip.generateAsync({ type: 'blob' });
-    const zipFileName = scannerOptions
-        ? (fileName ? `${fileName}_scanned.zip` : 'scanned_export.zip')
-        : (fileName ? `${fileName}.zip` : 'pages_export.zip');
-    downloadFile(content, zipFileName);
+    return { blob: content, isSinglePage: false };
 }
 

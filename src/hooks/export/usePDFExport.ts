@@ -5,6 +5,7 @@ import { exportToPdf, EXPORT_QUALITY_PRESETS } from '../../core/pdf/exporter';
 import type { ExportQualityOptions } from '../../core/pdf/exporter';
 import { compressPDF, downloadPDF } from '../../core/pdf/compressionManager';
 import type { CompressionLevel } from '../../core/pdf/compressionManager';
+import { downloadPdfBytes } from '../../utils/download';
 import confetti from 'canvas-confetti';
 
 /** Bytes in a kilobyte */
@@ -95,7 +96,9 @@ export function usePDFExport(): UsePDFExportReturn {
         try {
             triggerConfetti();
             setExportProgress(50);
-            const result = await exportToPdf(pdfDocument, canvases, EXPORT_QUALITY_PRESETS.high, fileName ?? undefined);
+            const result = await exportToPdf(pdfDocument, canvases, EXPORT_QUALITY_PRESETS.high);
+            const outputFileName = fileName ? `${fileName}.pdf` : 'document.pdf';
+            downloadPdfBytes(result.pdfBytes, outputFileName);
             setExportProgress(100);
 
             const originalFormatted = formatFileSize(result.originalSize);
@@ -155,8 +158,9 @@ export function usePDFExport(): UsePDFExportReturn {
             } else {
                 setExportStage('Exporting PDF...');
                 setExportProgress(50);
-                const outputName = fileName ? `${fileName}_minimized` : 'document_minimized';
-                const result = await exportToPdf(pdfDocument, canvases, options, outputName);
+                const result = await exportToPdf(pdfDocument, canvases, options);
+                const outputFileName = fileName ? `${fileName}_minimized.pdf` : 'document_minimized.pdf';
+                downloadPdfBytes(result.pdfBytes, outputFileName);
                 originalSize = result.originalSize;
                 exportedSize = result.exportedSize;
                 percentChange = result.percentChange;

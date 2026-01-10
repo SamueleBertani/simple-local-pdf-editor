@@ -3,6 +3,7 @@ import { usePDFStore } from '../../store/usePDFStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import { exportToImages, renderPageToCanvas } from '../../core/pdf/exporter';
 import type { ScannerOptions } from '../../core/image/scannerEffect';
+import { downloadFile } from '../../utils/download';
 import confetti from 'canvas-confetti';
 
 /**
@@ -70,7 +71,15 @@ export function useScannerExport(): UseScannerExportReturn {
         setIsProcessing(true);
         try {
             triggerConfetti();
-            await exportToImages(pdfDocument, canvases, options, fileName ?? undefined);
+            const result = await exportToImages(pdfDocument, canvases, options);
+
+            // Determine output filename based on original name and type
+            const baseName = fileName ?? 'scanned';
+            const outputFileName = result.isSinglePage
+                ? `${baseName}_scanned.png`
+                : `${baseName}_scanned.zip`;
+
+            downloadFile(result.blob, outputFileName);
             setIsScannerOpen(false);
         } catch {
             addNotification({
@@ -81,7 +90,7 @@ export function useScannerExport(): UseScannerExportReturn {
         } finally {
             setIsProcessing(false);
         }
-    }, [pdfDocument, canvases, addNotification]);
+    }, [pdfDocument, canvases, fileName, addNotification]);
 
     const closeScannerModal = useCallback(() => {
         setIsScannerOpen(false);
