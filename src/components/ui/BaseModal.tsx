@@ -168,9 +168,10 @@ interface ModalCancelButtonProps {
 export function ModalCancelButton({ onClick, disabled = false, children = 'Cancel' }: ModalCancelButtonProps) {
     return (
         <button
+            type="button"
             onClick={onClick}
             disabled={disabled}
-            className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 disabled:opacity-50"
+            className="w-full py-2 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
         >
             {children}
         </button>
