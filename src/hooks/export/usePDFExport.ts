@@ -3,7 +3,7 @@ import { usePDFStore } from '../../store/usePDFStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import { exportToPdf, EXPORT_QUALITY_PRESETS } from '../../core/pdf/exporter';
 import type { ExportQualityOptions } from '../../core/pdf/exporter';
-import { compressPDF, downloadPDF, selectStrategy } from '../../core/pdf/compressionManager';
+import { compressPDF, downloadPDF } from '../../core/pdf/compressionManager';
 import type { CompressionLevel } from '../../core/pdf/compressionManager';
 import confetti from 'canvas-confetti';
 
@@ -134,12 +134,9 @@ export function usePDFExport(): UsePDFExportReturn {
             let originalSize: number;
             let exportedSize: number;
             let percentChange: number;
-            let strategyUsed: string = 'standard';
 
             if (options.useReencode && options.reencodeQuality) {
                 const compressionLevel: CompressionLevel = options.reencodeQuality === 'screen' ? 'extreme' : 'heavy';
-                const strategy = selectStrategy();
-                strategyUsed = strategy;
 
                 const result = await compressPDF(pdfDocument, canvases, {
                     level: compressionLevel,
@@ -170,12 +167,11 @@ export function usePDFExport(): UsePDFExportReturn {
             const exportedFormatted = formatFileSize(exportedSize);
             const changeSign = percentChange >= 0 ? '+' : '';
             const changeText = `${changeSign}${percentChange.toFixed(1)}%`;
-            const strategyInfo = strategyUsed !== 'standard' ? ` [${strategyUsed}]` : '';
 
             addNotification({
                 type: percentChange <= 0 ? 'success' : 'info',
                 title: 'PDF Exported',
-                message: `${originalFormatted} → ${exportedFormatted} (${changeText})${strategyInfo}`
+                message: `${originalFormatted} → ${exportedFormatted} (${changeText})`
             });
         } catch {
             addNotification({
