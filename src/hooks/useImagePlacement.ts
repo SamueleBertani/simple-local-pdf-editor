@@ -50,8 +50,8 @@ export function useImagePlacement({
                         top: pointer.y,
                         originX: 'center',
                         originY: 'center',
-                        scaleX: storedScale?.scaleX ?? 0.5,
-                        scaleY: storedScale?.scaleY ?? 0.5,
+                        scaleX: storedScale?.scaleX ?? 0.35,
+                        scaleY: storedScale?.scaleY ?? 0.35,
                         data: {
                             stampUrl: activeTool === 'stamp' ? imageUrl : undefined
                         }

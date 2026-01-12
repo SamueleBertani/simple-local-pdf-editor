@@ -96,8 +96,8 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
                     selectable: false,
                     originX: 'center',
                     originY: 'center',
-                    scaleX: storedScale?.scaleX ?? 0.5,
-                    scaleY: storedScale?.scaleY ?? 0.5,
+                    scaleX: storedScale?.scaleX ?? 0.35,
+                    scaleY: storedScale?.scaleY ?? 0.35,
                     data: { isGhost: true }
                 });
                 ghostObj.current = img;
