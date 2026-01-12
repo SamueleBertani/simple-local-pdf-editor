@@ -1,6 +1,7 @@
 import { useToolStore, hasToolSettings } from '../../store/useToolStore';
 import { ToolSettings } from '../toolbar/ToolSettings';
 import { clsx } from 'clsx';
+import { createPortal } from 'react-dom';
 
 export function MobileSettingsDrawer() {
     const { activeTool, isSettingsOpen, setSettingsOpen } = useToolStore();
@@ -16,12 +17,12 @@ export function MobileSettingsDrawer() {
 
     if (!hasSettings) return null;
 
-    return (
+    return createPortal(
         <>
             {/* Backdrop */}
             <div
                 className={clsx(
-                    "fixed inset-0 bg-black/10 z-40 transition-opacity duration-300 md:hidden",
+                    "fixed inset-0 bg-black/10 transition-opacity duration-300 md:hidden",
                     isVisible ? "opacity-100" : "opacity-0 pointer-events-none"
                 )}
                 onClick={handleClose}
@@ -31,7 +32,7 @@ export function MobileSettingsDrawer() {
             {/* Drawer */}
             <div
                 className={clsx(
-                    "fixed bottom-0 left-0 right-0 z-50 flex flex-col max-h-[85vh] transition-transform duration-300 ease-out md:hidden shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]",
+                    "fixed bottom-0 left-0 right-0 flex flex-col max-h-[85vh] transition-transform duration-300 ease-out md:hidden shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.1)]",
                     isVisible ? "translate-y-0" : "translate-y-full"
                 )}
                 role="dialog"
@@ -51,6 +52,7 @@ export function MobileSettingsDrawer() {
                     <ToolSettings activeTool={activeTool} onClose={handleClose} />
                 </div>
             </div>
-        </>
+        </>,
+        document.body
     );
 }

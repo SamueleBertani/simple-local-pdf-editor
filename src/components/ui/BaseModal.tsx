@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 interface BaseModalProps {
     /** Whether the modal is open */
@@ -97,9 +98,9 @@ export function BaseModal({
 
     // Custom layout mode - only provides backdrop and accessibility
     if (customLayout) {
-        return (
+        return createPortal(
             <div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+                className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={ariaLabelId}
@@ -110,13 +111,14 @@ export function BaseModal({
                 >
                     {children}
                 </div>
-            </div>
+            </div>,
+            document.body
         );
     }
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
             role="dialog"
             aria-modal="true"
             aria-labelledby={ariaLabelId}
@@ -137,7 +139,8 @@ export function BaseModal({
                 </div>
                 {children}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
