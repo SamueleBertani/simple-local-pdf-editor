@@ -1,67 +1,74 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import type { PDFPageProxy } from 'pdfjs-dist';
 import { usePDFStore } from '../../store/usePDFStore';
 import { PDFPage } from './PDFPage';
 import { Loader2 } from 'lucide-react';
+import type { PageViewport } from 'pdfjs-dist';
 
 /**
  * Main viewer component that renders the PDF document.
- * Iterates through pages and renders them via PDFPage components.
+ * Refactored to lazily load pages using Intersection Observer via PDFPage.
  */
 export function PDFViewer() {
     const { pdfDocument, scale, setScale } = usePDFStore();
-    const [pages, setPages] = useState<PDFPageProxy[]>([]);
+    const [numPages, setNumPages] = useState(0);
+    const [firstPageViewport, setFirstPageViewport] = useState<PageViewport | null>(null);
     const [loading, setLoading] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     /**
      * Calculate optimal scale based on container width (90% to ensure margins)
      */
-    const calculateOptimalScale = useCallback(() => {
-        if (!containerRef.current || pages.length === 0) return;
+    const calculateOptimalScale = useCallback((viewport: PageViewport) => {
+        if (!containerRef.current) return;
 
         const containerWidth = containerRef.current.clientWidth;
-        const firstPage = pages[0];
-        const viewport = firstPage.getViewport({ scale: 1 });
-        const newScale = (containerWidth * 0.9) / viewport.width;
-        setScale(newScale);
-    }, [pages, setScale]);
+        // Calculate what scale is needed to map viewport.width to containerWidth * 0.9
+        // viewport.width is at scale 1 (usually)
+        // newScale = (containerWidth * 0.9) / (viewport.width at scale 1)
 
-    // Load PDF pages
+        // Ensure we work with unscaled width
+        const baseWidth = viewport.width;
+        const newScale = (containerWidth * 0.9) / baseWidth;
+        setScale(newScale);
+    }, [setScale]);
+
+    // Initial load: Get numPages and Page 1 dims
     useEffect(() => {
-        const loadPages = async () => {
+        const initPDF = async () => {
             if (!pdfDocument) return;
 
             setLoading(true);
+            try {
+                // Peek at page 1 to set defaults
+                const page1 = await pdfDocument.getPage(1);
+                const viewport = page1.getViewport({ scale: 1 });
 
-            const loadedPages = [];
-            for (let i = 1; i <= pdfDocument.numPages; i++) {
-                const page = await pdfDocument.getPage(i);
-                loadedPages.push(page);
+                setNumPages(pdfDocument.numPages);
+                setFirstPageViewport(viewport);
+
+                // Set initial scale
+                calculateOptimalScale(viewport);
+            } catch (error) {
+                console.error("Failed to initialize PDF", error);
+            } finally {
+                setLoading(false);
             }
-
-            setPages(loadedPages);
-            setLoading(false);
         };
 
-        loadPages();
-    }, [pdfDocument]);
+        initPDF();
+    }, [pdfDocument, calculateOptimalScale]);
 
-    // Calculate initial scale and handle resize
+    // Handle resize
     useEffect(() => {
-        if (pages.length === 0) return;
+        if (!firstPageViewport) return;
 
-        // Calculate initial scale
-        calculateOptimalScale();
-
-        // Handle window resize
         const handleResize = () => {
-            calculateOptimalScale();
+            calculateOptimalScale(firstPageViewport);
         };
 
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, [pages, calculateOptimalScale]);
+    }, [firstPageViewport, calculateOptimalScale]);
 
     if (!pdfDocument) {
         return (
@@ -71,7 +78,7 @@ export function PDFViewer() {
         )
     }
 
-    if (loading) {
+    if (loading || !firstPageViewport) {
         return (
             <div className="flex-1 flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
@@ -79,10 +86,20 @@ export function PDFViewer() {
         );
     }
 
+    // Default dimensions from page 1 (unscaled)
+    const defaultWidth = firstPageViewport.width;
+    const defaultHeight = firstPageViewport.height;
+
     return (
         <div ref={containerRef} className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-950/50 p-8 flex flex-col items-center">
-            {pages.map((page, index) => (
-                <PDFPage key={index} page={page} scale={scale} />
+            {Array.from({ length: numPages }, (_, i) => (
+                <PDFPage
+                    key={i}
+                    pageIndex={i + 1}
+                    scale={scale}
+                    defaultWidth={defaultWidth}
+                    defaultHeight={defaultHeight}
+                />
             ))}
         </div>
     );
