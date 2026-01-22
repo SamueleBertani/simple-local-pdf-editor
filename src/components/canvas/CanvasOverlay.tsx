@@ -9,6 +9,7 @@ import { useImagePlacement } from '../../hooks/useImagePlacement';
 import { RectangleDrawingHandler } from './handlers/RectangleDrawingHandler';
 import { TextCreationHandler } from './handlers/TextCreationHandler';
 import { ObjectDragDropHandler } from './handlers/ObjectDragDropHandler';
+import { Z_INDEX } from '../../constants/zIndex';
 
 /**
  * Props for the CanvasOverlay component.
@@ -70,7 +71,7 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
     return (
         <div
             className="absolute inset-0 pointer-events-auto"
-            style={{ zIndex: isDraggingCanvas ? 50 : 10 }}
+            style={{ zIndex: isDraggingCanvas ? Z_INDEX.CANVAS.DRAG_PREVIEW : Z_INDEX.CANVAS.OVERLAY }}
         >
             <canvas ref={canvasRef} />
 

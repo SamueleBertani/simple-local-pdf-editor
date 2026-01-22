@@ -1,9 +1,11 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { Canvas, FabricImage, IText, type FabricObject, type TPointerEventInfo, type TPointerEvent } from 'fabric';
-import { useToolStore } from '../store/useToolStore';
+import type { Canvas, FabricObject, TPointerEventInfo, TPointerEvent } from 'fabric';
 import type { ToolType } from '../store/useToolStore';
 import { useIsMobile } from './useIsMobile';
 import type { ToolSettings, CustomFabricObject } from '../types';
+import { useTextGhost } from './ghost/useTextGhost';
+import { useImageGhost } from './ghost/useImageGhost';
+import { TOOLS } from '../constants/tools';
 
 interface UseGhostObjectProps {
     fabricCanvas: Canvas | null;
@@ -28,27 +30,18 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
     const isMouseOver = useRef(false);
     const lastPointer = useRef<{ x: number, y: number } | null>(null);
 
-    /**
-     * Adds the ghost to the canvas if conditions are met.
-     */
-    const checkAndAddGhost = useCallback(() => {
-        if (!fabricCanvas) return;
-        if (ghostObj.current && isMouseOver.current && !isInteracting.current && lastPointer.current) {
-            ghostObj.current.set({ left: lastPointer.current.x, top: lastPointer.current.y });
+    const { createTextGhost } = useTextGhost();
+    const { createImageGhost } = useImageGhost();
 
-            if (!fabricCanvas.contains(ghostObj.current)) {
-                fabricCanvas.add(ghostObj.current);
-            }
 
-            fabricCanvas.bringObjectToFront(ghostObj.current);
-            fabricCanvas.requestRenderAll();
-        }
-    }, [fabricCanvas]);
 
     /**
      * Re-creates the ghost object based on current tool settings.
      */
-    const updateGhost = useCallback(() => {
+    /**
+     * Re-creates the ghost object based on current tool settings.
+     */
+    const updateGhost = useCallback(async () => {
         if (!fabricCanvas) return;
 
         // Disable ghost on mobile
@@ -61,50 +54,59 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             return;
         }
 
+        if (isInteracting.current) return;
+
+        let newGhost: FabricObject | null = null;
+
+        // Create the new ghost off-canvas first
+        if (activeTool === TOOLS.TEXT) {
+            newGhost = createTextGhost(activeTool, toolSettings);
+        } else if (activeTool === TOOLS.IMAGE || activeTool === TOOLS.STAMP || activeTool === TOOLS.HANDWRITING) {
+            newGhost = await createImageGhost(activeTool, pendingImage);
+        }
+
+        // Synchronous swap to prevent flicker
         if (ghostObj.current) {
             fabricCanvas.remove(ghostObj.current);
             ghostObj.current = null;
         }
 
-        if (isInteracting.current) return;
+        if (newGhost) {
+            // Position it at the last known pointer location immediately
+            if (lastPointer.current) {
+                newGhost.set({ left: lastPointer.current.x, top: lastPointer.current.y });
+            }
 
-        if (activeTool === 'text') {
-            const text = new IText('Type here', {
-                fontFamily: toolSettings.fontFamily,
-                fontSize: toolSettings.fontSize,
-                fill: toolSettings.color,
-                opacity: 0.5,
-                evented: false,
-                selectable: false,
-                originX: 'left',
-                originY: 'top',
-                data: { isGhost: true }
-            });
-            ghostObj.current = text;
-            checkAndAddGhost();
-        } else if ((activeTool === 'image' || activeTool === 'stamp' || activeTool === 'handwriting') && pendingImage) {
-            const imageUrl = pendingImage; // Capture for use in async callback
-            FabricImage.fromURL(imageUrl).then((img) => {
-                if (!activeTool.match(/image|stamp|handwriting/)) return;
-                if (isInteracting.current) return;
+            ghostObj.current = newGhost;
 
-                const storedScale = activeTool === 'stamp' ? useToolStore.getState().stampScales[imageUrl] : null;
+            // Only add if we have a valid position/mouse status, otherwise wait for next mousemove
+            if (isMouseOver.current && lastPointer.current) {
+                if (!fabricCanvas.contains(newGhost)) {
+                    fabricCanvas.add(newGhost);
+                }
+                fabricCanvas.bringObjectToFront(newGhost);
+            }
 
-                img.set({
-                    opacity: 0.5,
-                    evented: false,
-                    selectable: false,
-                    originX: 'center',
-                    originY: 'center',
-                    scaleX: storedScale?.scaleX ?? 0.35,
-                    scaleY: storedScale?.scaleY ?? 0.35,
-                    data: { isGhost: true }
-                });
-                ghostObj.current = img;
-                checkAndAddGhost();
-            });
+            fabricCanvas.requestRenderAll();
+        } else {
+            fabricCanvas.requestRenderAll();
         }
-    }, [fabricCanvas, activeTool, toolSettings, pendingImage, checkAndAddGhost, isMobile]);
+    }, [fabricCanvas, activeTool, toolSettings, pendingImage, isMobile, createTextGhost, createImageGhost]);
+
+    // Simple add check for mouse movements
+    const checkAndAddGhost = useCallback(() => {
+        if (!fabricCanvas || !ghostObj.current) return;
+
+        if (isMouseOver.current && !isInteracting.current && lastPointer.current) {
+            ghostObj.current.set({ left: lastPointer.current.x, top: lastPointer.current.y });
+
+            if (!fabricCanvas.contains(ghostObj.current)) {
+                fabricCanvas.add(ghostObj.current);
+                fabricCanvas.bringObjectToFront(ghostObj.current);
+            }
+            fabricCanvas.requestRenderAll();
+        }
+    }, [fabricCanvas]);
 
     useEffect(() => {
         if (!fabricCanvas) return;
@@ -120,16 +122,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
             if (!isMouseOver.current) isMouseOver.current = true;
             if (isInteracting.current) return;
 
-            if (ghostObj.current) {
-                ghostObj.current.set({ left: pointer.x, top: pointer.y });
-
-                if (!fabricCanvas.contains(ghostObj.current)) {
-                    fabricCanvas.add(ghostObj.current);
-                    fabricCanvas.bringObjectToFront(ghostObj.current);
-                }
-
-                fabricCanvas.requestRenderAll();
-            }
+            checkAndAddGhost();
         };
 
         const handleNativeMouseEnter = (e: MouseEvent) => {
@@ -178,7 +171,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
 
             if (isInteracting.current) {
                 isInteracting.current = false;
-                updateGhost();
+                checkAndAddGhost();
             }
         };
 
@@ -188,7 +181,7 @@ export function useGhostObject({ fabricCanvas, activeTool, toolSettings, pending
 
             if (isInteracting.current) {
                 isInteracting.current = false;
-                updateGhost();
+                checkAndAddGhost();
             }
         };
 
