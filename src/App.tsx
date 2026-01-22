@@ -11,7 +11,7 @@ import { useFileUpload } from './hooks/useFileUpload';
 import { useExportHandlers } from './hooks/useExportHandlers';
 import { ScannerEffectModal } from './components/modals/ScannerEffectModal';
 import { ExportQualityModal } from './components/modals/ExportQualityModal';
-import { clsx } from 'clsx';
+import { cn } from './utils/cn';
 import { useToolStore, hasToolSettings } from './store/useToolStore';
 import { useTheme } from './hooks/useTheme';
 import { ZoomControls } from './components/toolbar/ZoomControls';
@@ -137,7 +137,7 @@ function App() {
         )}
 
         {/* Viewer */}
-        <div className={clsx(
+        <div className={cn(
           "flex-1 flex flex-col relative bg-slate-100 dark:bg-slate-950/50 min-w-0 transition-all",
           pdfDocument ? "pt-14 pb-20 md:pt-0 md:pb-0" : ""
         )}>

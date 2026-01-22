@@ -3,6 +3,7 @@ import { Button } from '../ui/Button';
 import { BaseModal, ModalActions, ModalCancelButton } from '../ui/BaseModal';
 import type { ExportQualityOptions } from '../../core/pdf/exporter';
 import { COMPRESSION_QUALITY_SETTINGS, type CompressionQuality } from '../../core/pdf/compressor';
+import { cn } from '../../utils/cn';
 
 interface ExportQualityModalProps {
     isOpen: boolean;
@@ -17,6 +18,34 @@ const COMPRESSION_KEYS: CompressionQuality[] = ['prepress', 'printer', 'ebook', 
 
 /** Options that use re-encoding (text becomes non-selectable) */
 const REENCODE_OPTIONS: CompressionQuality[] = ['ebook', 'screen'];
+
+/**
+ * Get button style classes based on selection state and reencode option
+ */
+function getOptionStyles(isSelected: boolean, isReencodeOption: boolean) {
+    if (!isSelected) {
+        return {
+            button: "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600",
+            title: "text-slate-700 dark:text-slate-200",
+            badge: "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400",
+            description: "text-slate-500 dark:text-slate-400"
+        };
+    }
+    if (isReencodeOption) {
+        return {
+            button: "border-amber-500 bg-amber-50 dark:bg-amber-900/20",
+            title: "text-amber-700 dark:text-amber-300",
+            badge: "bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-300",
+            description: "text-amber-600 dark:text-amber-400"
+        };
+    }
+    return {
+        button: "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20",
+        title: "text-indigo-700 dark:text-indigo-300",
+        badge: "bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300",
+        description: "text-indigo-600 dark:text-indigo-400"
+    };
+}
 
 /**
  * Progress bar component for showing compression progress.
@@ -87,47 +116,27 @@ export function ExportQualityModal({ isOpen, onClose, onExport, isProcessing, pr
                     const settings = COMPRESSION_QUALITY_SETTINGS[key];
                     const isSelected = selectedQuality === key;
                     const isReencodeOption = REENCODE_OPTIONS.includes(key);
+                    const styles = getOptionStyles(isSelected, isReencodeOption);
 
                     return (
                         <button
                             key={key}
                             ref={index === 0 ? firstFocusableRef : undefined}
                             onClick={() => setSelectedQuality(key)}
-                            className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
-                                isSelected
-                                    ? isReencodeOption
-                                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
-                                        : 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                            }`}
+                            className={cn(
+                                "w-full p-4 rounded-xl border-2 text-left transition-all",
+                                styles.button
+                            )}
                         >
                             <div className="flex items-center justify-between">
-                                <span className={`font-semibold ${
-                                    isSelected
-                                        ? isReencodeOption
-                                            ? 'text-amber-700 dark:text-amber-300'
-                                            : 'text-indigo-700 dark:text-indigo-300'
-                                        : 'text-slate-700 dark:text-slate-200'
-                                }`}>
+                                <span className={cn("font-semibold", styles.title)}>
                                     {settings.label}
                                 </span>
-                                <span className={`text-xs px-2 py-1 rounded-full ${
-                                    isSelected
-                                        ? isReencodeOption
-                                            ? 'bg-amber-100 dark:bg-amber-800 text-amber-600 dark:text-amber-300'
-                                            : 'bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                                }`}>
+                                <span className={cn("text-xs px-2 py-1 rounded-full", styles.badge)}>
                                     {isReencodeOption ? 'Flattened text' : 'Selectable text'}
                                 </span>
                             </div>
-                            <p className={`text-sm mt-1 ${
-                                isSelected
-                                    ? isReencodeOption
-                                        ? 'text-amber-600 dark:text-amber-400'
-                                        : 'text-indigo-600 dark:text-indigo-400'
-                                    : 'text-slate-500 dark:text-slate-400'
-                            }`}>
+                            <p className={cn("text-sm mt-1", styles.description)}>
                                 {settings.description}
                             </p>
                         </button>

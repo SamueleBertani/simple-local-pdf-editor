@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { clsx } from 'clsx';
+import { cn } from '../../utils/cn';
 import { Check } from 'lucide-react';
 
 interface ColorPickerProps {
@@ -18,7 +18,7 @@ export const ColorPicker = memo(function ColorPicker({ colors, value, onChange, 
                     <button
                         key={c}
                         onClick={() => onChange(c)}
-                        className={clsx(
+                        className={cn(
                             "w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center",
                             value === c
                                 ? "border-indigo-600 scale-110 ring-2 ring-indigo-200 dark:ring-indigo-900"
@@ -30,7 +30,7 @@ export const ColorPicker = memo(function ColorPicker({ colors, value, onChange, 
                         aria-pressed={value === c}
                     >
                         {value === c && (
-                            <Check className={clsx("w-4 h-4",
+                            <Check className={cn("w-4 h-4",
                                 c === '#FFFFFF' ? "text-indigo-600" : "text-white drop-shadow-sm"
                             )} />
                         )}

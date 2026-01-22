@@ -1,7 +1,13 @@
 import { useToolStore } from '../../store/useToolStore';
 import { ColorPicker } from './ColorPicker';
+import { cn } from '../../utils/cn';
 
 const TEXT_COLORS = ['#000000', '#EF4444', '#3B82F6', '#10B981', '#FFFFFF', '#6B7280'] as const;
+
+/** Base styles for font family selection buttons */
+const FONT_BTN_BASE = "flex-1 py-2 text-sm border rounded-lg transition-colors";
+const FONT_BTN_SELECTED = "bg-indigo-600 border-indigo-600 text-white shadow-md";
+const FONT_BTN_UNSELECTED = "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500";
 
 export function TextInput() {
     const { toolSettings, setToolSettings } = useToolStore();
@@ -33,9 +39,35 @@ export function TextInput() {
                 <div>
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Font Family</label>
                     <div className="flex gap-2">
-                        <button onClick={() => setToolSettings({ fontFamily: 'sans-serif' })} className={`flex-1 py-2 text-sm border rounded-lg transition-colors ${toolSettings.fontFamily === 'sans-serif' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500'}`}>Sans</button>
-                        <button onClick={() => setToolSettings({ fontFamily: 'serif' })} className={`flex-1 py-2 text-sm border rounded-lg transition-colors font-serif ${toolSettings.fontFamily === 'serif' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500'}`}>Serif</button>
-                        <button onClick={() => setToolSettings({ fontFamily: 'monospace' })} className={`flex-1 py-2 text-sm border rounded-lg transition-colors font-mono ${toolSettings.fontFamily === 'monospace' ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500'}`}>Mono</button>
+                        <button
+                            onClick={() => setToolSettings({ fontFamily: 'sans-serif' })}
+                            className={cn(
+                                FONT_BTN_BASE,
+                                toolSettings.fontFamily === 'sans-serif' ? FONT_BTN_SELECTED : FONT_BTN_UNSELECTED
+                            )}
+                        >
+                            Sans
+                        </button>
+                        <button
+                            onClick={() => setToolSettings({ fontFamily: 'serif' })}
+                            className={cn(
+                                FONT_BTN_BASE,
+                                "font-serif",
+                                toolSettings.fontFamily === 'serif' ? FONT_BTN_SELECTED : FONT_BTN_UNSELECTED
+                            )}
+                        >
+                            Serif
+                        </button>
+                        <button
+                            onClick={() => setToolSettings({ fontFamily: 'monospace' })}
+                            className={cn(
+                                FONT_BTN_BASE,
+                                "font-mono",
+                                toolSettings.fontFamily === 'monospace' ? FONT_BTN_SELECTED : FONT_BTN_UNSELECTED
+                            )}
+                        >
+                            Mono
+                        </button>
                     </div>
                 </div>
             </div>

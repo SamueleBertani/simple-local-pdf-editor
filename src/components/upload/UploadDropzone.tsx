@@ -1,6 +1,6 @@
 import type { ChangeEvent, DragEvent } from 'react';
 import { Upload } from 'lucide-react';
-import { clsx } from 'clsx';
+import { cn } from '../../utils/cn';
 import { Button } from '../ui/Button';
 
 /**
@@ -65,7 +65,7 @@ export function UploadDropzone({
       </div>
 
       <div
-        className={clsx(
+        className={cn(
           "bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border-2 flex flex-col items-center max-w-md w-full mx-4 transition-all duration-200",
           isDragging
             ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 scale-105"
@@ -76,13 +76,13 @@ export function UploadDropzone({
         onDrop={onDrop}
       >
         <Upload
-          className={clsx(
+          className={cn(
             "w-12 h-12 mb-4 transition-colors",
             isDragging ? "text-indigo-600 dark:text-indigo-400" : "text-slate-300 dark:text-slate-600"
           )}
         />
         <p
-          className={clsx(
+          className={cn(
             "text-lg font-medium text-center mb-1 transition-colors",
             isDragging ? "text-indigo-700 dark:text-indigo-300" : "text-slate-600 dark:text-slate-300"
           )}
@@ -90,7 +90,7 @@ export function UploadDropzone({
           {isDragging ? "Drop PDF here" : "Upload a PDF to start editing"}
         </p>
         <p
-          className={clsx(
+          className={cn(
             "text-sm text-center mb-6 transition-colors",
             isDragging ? "text-indigo-500 dark:text-indigo-400" : "text-slate-400 dark:text-slate-500"
           )}

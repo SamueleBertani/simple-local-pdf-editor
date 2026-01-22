@@ -1,3 +1,40 @@
+/**
+ * =============================================================================
+ * GLOBAL STYLES - PDF Editor
+ * =============================================================================
+ *
+ * This file contains all global CSS using Tailwind CSS.
+ *
+ * STYLE GUIDE:
+ * ------------
+ * 1. Use `cn()` from '@/utils/cn' for all className attributes
+ * 2. Never use template literals for className (e.g., `bg-${color}`)
+ * 3. Always include dark mode variants for colors
+ * 4. Use semantic color names from this file when possible
+ *
+ * COLOR PALETTE:
+ * - Primary: indigo-600 (actions, selected states)
+ * - Warning: amber-500 (caution states)
+ * - Error: red-500
+ * - Success: green-500
+ * - Neutral: slate-* (all UI chrome)
+ *
+ * SPACING SCALE:
+ * - Use Tailwind defaults: 2, 3, 4, 6, 8
+ * - Consistent gaps: gap-2 (small), gap-3 (medium), gap-4 (large)
+ *
+ * BORDER RADIUS:
+ * - Small: rounded-lg
+ * - Medium: rounded-xl
+ * - Large: rounded-2xl
+ *
+ * Z-INDEX (defined in tailwind.config.js):
+ * - canvas: 10
+ * - toolbar: 20
+ * - modal: 50
+ * - notification: 60
+ */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,47 +46,96 @@
 }
 
 @layer components {
-  /* Panel - Reusable container with background and border */
+  /* ==========================================================================
+   * PANELS - Container components with consistent backgrounds
+   * ========================================================================== */
+
+  /** Base panel with background and border */
   .panel {
     @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800;
   }
 
+  /** Panel header with bottom border */
   .panel-header {
     @apply flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800;
   }
 
-  /* Settings section styling */
+  /* ==========================================================================
+   * SETTINGS - Form control styling
+   * ========================================================================== */
+
+  /** Settings section container */
   .settings-section {
     @apply p-4 space-y-4;
   }
 
+  /** Uppercase label for settings */
   .settings-label {
     @apply text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider;
   }
 
-  /* Toggle button states (selected/unselected) */
+  /* ==========================================================================
+   * BUTTONS - Interactive button states
+   * ========================================================================== */
+
+  /** Base toggle button */
   .toggle-btn {
     @apply px-3 py-2 rounded-lg border-2 transition-all;
   }
 
+  /** Selected state for toggle buttons (indigo accent) */
   .toggle-btn-selected {
     @apply border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300;
   }
 
+  /** Unselected state for toggle buttons */
   .toggle-btn-unselected {
     @apply border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200;
   }
 
-  /* Text styles */
+  /** Selectable card button (stamps, options) */
+  .card-btn {
+    @apply p-3 rounded-xl border-2 transition-all;
+  }
+
+  .card-btn-selected {
+    @apply border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm;
+  }
+
+  .card-btn-unselected {
+    @apply border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800;
+  }
+
+  /* ==========================================================================
+   * TEXT - Semantic text color classes
+   * ========================================================================== */
+
+  /** Primary text (headings, important content) */
   .text-primary {
     @apply text-slate-900 dark:text-slate-100;
   }
 
+  /** Secondary text (body, descriptions) */
   .text-secondary {
     @apply text-slate-600 dark:text-slate-400;
   }
 
+  /** Muted text (hints, placeholders) */
   .text-muted {
     @apply text-slate-500 dark:text-slate-400;
+  }
+
+  /* ==========================================================================
+   * FORM INPUTS - Input field styling
+   * ========================================================================== */
+
+  /** Range slider styling */
+  .input-range {
+    @apply flex-1 accent-indigo-600 h-2 bg-slate-100 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer;
+  }
+
+  /** Form label styling */
+  .input-label {
+    @apply text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block;
   }
 }

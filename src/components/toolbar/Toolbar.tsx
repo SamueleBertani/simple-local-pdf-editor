@@ -2,7 +2,7 @@ import { MousePointer2, Pen, Image as ImageIcon, Stamp, Type, Square } from 'luc
 import { useRef } from 'react';
 import type { ToolType } from '../../store/useToolStore';
 import { useToolStore } from '../../store/useToolStore';
-import { clsx } from 'clsx';
+import { cn } from '../../utils/cn';
 
 interface ToolBtnProps {
     tool: ToolType;
@@ -19,7 +19,7 @@ function ToolBtn({ tool, icon: Icon, label, title, activeTool, orientation, onCl
         <button
             onClick={() => onClick(tool)}
             title={title}
-            className={clsx(
+            className={cn(
                 "flex items-center gap-3 p-3 rounded-lg transition-colors text-left shrink-0",
                 orientation === 'vertical' ? "w-full" : "flex-1 justify-center flex-col gap-1 p-2",
                 activeTool === tool
@@ -27,8 +27,8 @@ function ToolBtn({ tool, icon: Icon, label, title, activeTool, orientation, onCl
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400"
             )}
         >
-            <Icon className={clsx("w-5 h-5", activeTool === tool && "fill-indigo-100")} />
-            <span className={clsx("text-sm", orientation === 'horizontal' && "text-[10px]")}>{label}</span>
+            <Icon className={cn("w-5 h-5", activeTool === tool && "fill-indigo-100")} />
+            <span className={cn("text-sm", orientation === 'horizontal' && "text-[10px]")}>{label}</span>
         </button>
     );
 }
@@ -74,7 +74,7 @@ export function Toolbar({ orientation = 'vertical' }: ToolbarProps) {
     };
 
     return (
-        <div className={clsx(
+        <div className={cn(
             "flex w-full px-4 relative",
             orientation === 'vertical' ? "flex-col gap-2" : "flex-row gap-2 overflow-x-auto no-scrollbar py-2"
         )}>

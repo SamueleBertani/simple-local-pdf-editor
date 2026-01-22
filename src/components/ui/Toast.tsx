@@ -1,5 +1,5 @@
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
-import { clsx } from 'clsx';
+import { cn } from '../../utils/cn';
 import type { NotificationType } from '../../store/useNotificationStore';
 
 /**
@@ -49,13 +49,13 @@ export const Toast = ({ id, type, title, message, onDismiss }: ToastProps) => {
 
     return (
         <div
-            className={clsx(
+            className={cn(
                 "flex items-start gap-3 p-4 rounded-lg border shadow-lg transition-all animate-in slide-in-from-right-full duration-300 max-w-sm w-full pointer-events-auto",
                 styles[type]
             )}
             role="alert"
         >
-            <Icon className={clsx("w-5 h-5 mt-0.5 shrink-0", iconStyles[type])} />
+            <Icon className={cn("w-5 h-5 mt-0.5 shrink-0", iconStyles[type])} />
             <div className="flex-1 min-w-0">
                 <h4 className="font-semibold text-sm leading-tight">{title}</h4>
                 {message && <p className="text-sm mt-1 opacity-90 break-words">{message}</p>}

@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '../../utils/cn';
 
 interface BaseModalProps {
     /** Whether the modal is open */
@@ -107,7 +108,10 @@ export function BaseModal({
             >
                 <div
                     ref={modalRef}
-                    className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full ${maxWidth} max-h-[90vh] flex overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
+                    className={cn(
+                        "bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-h-[90vh] flex overflow-hidden animate-in fade-in zoom-in-95 duration-200",
+                        maxWidth
+                    )}
                 >
                     {children}
                 </div>
@@ -125,7 +129,10 @@ export function BaseModal({
         >
             <div
                 ref={modalRef}
-                className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full ${maxWidth} mx-4 p-6 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto`}
+                className={cn(
+                    "bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full mx-4 p-6 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto",
+                    maxWidth
+                )}
             >
                 <div className="mb-6">
                     <h2 id={ariaLabelId} className="text-xl font-bold text-slate-800 dark:text-slate-100">
