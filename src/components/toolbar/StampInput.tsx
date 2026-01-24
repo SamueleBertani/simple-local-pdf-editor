@@ -98,7 +98,7 @@ export function StampInput() {
                             {/* Bottone rimuovi */}
                             <button
                                 onClick={(e) => handleRemoveStamp(stamp.id, e)}
-                                className="absolute top-1 right-1 p-1 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 z-10"
+                                className="absolute top-1 right-1 p-1 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-500 transition-colors z-10"
                             >
                                 <X className="w-3 h-3" />
                             </button>
@@ -120,7 +120,7 @@ export function StampInput() {
                             </span>
 
                             {isSelected && (
-                                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-500 animate-in zoom-in" />
+                                <div className="absolute top-2 left-2 w-2 h-2 rounded-full bg-primary-500 animate-in zoom-in" />
                             )}
                         </button>
                     );
