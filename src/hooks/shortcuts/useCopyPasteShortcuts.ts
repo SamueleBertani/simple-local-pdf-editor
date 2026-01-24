@@ -5,10 +5,17 @@ import { usePDFStore } from '../../store/usePDFStore';
 import { useClipboardStore } from '../../store/useClipboardStore';
 import { generateId } from '../../utils/generateId';
 import { isInputFocused } from '../../utils/keyboard';
+import type { CustomFabricObject } from '../../types';
 
 export function useCopyPasteShortcuts() {
     const { canvases } = usePDFStore();
-    const { clipboard, setClipboard, lastActivePageIndex } = useClipboardStore();
+    const {
+        clipboard,
+        setClipboard,
+        lastActivePageIndex,
+        duplicateOffset,
+        setDuplicationContext,
+    } = useClipboardStore();
 
     useEffect(() => {
         const handleKeyDown = async (e: KeyboardEvent) => {
@@ -65,22 +72,33 @@ export function useCopyPasteShortcuts() {
                 return;
             }
 
-            // Duplicate: Cmd+D
+            // Duplicate: Cmd+D (Figma-style with dynamic offset)
             if (isCmdOrCtrl && e.key === 'd') {
                 e.preventDefault();
                 for (const canvas of Object.values(canvases)) {
-                    const activeObject = canvas.getActiveObject();
+                    const activeObject = canvas.getActiveObject() as CustomFabricObject;
                     if (activeObject) {
+                        const sourceLeft = activeObject.left ?? 0;
+                        const sourceTop = activeObject.top ?? 0;
+
                         activeObject.clone().then((cloned: FabricObject) => {
+                            const newId = generateId();
                             cloned.set({
-                                left: (activeObject.left ?? 0) + 20,
-                                top: (activeObject.top ?? 0) + 20,
+                                left: sourceLeft + duplicateOffset.x,
+                                top: sourceTop + duplicateOffset.y,
                                 evented: true,
-                                id: generateId(),
+                                id: newId,
                             });
                             canvas.add(cloned);
                             canvas.setActiveObject(cloned);
                             canvas.requestRenderAll();
+
+                            // Update duplication context for tracking movement
+                            setDuplicationContext({
+                                sourceObjectId: activeObject.id ?? '',
+                                sourcePosition: { left: sourceLeft, top: sourceTop },
+                                duplicatedObjectId: newId,
+                            });
                         });
                         break;
                     }
@@ -91,5 +109,5 @@ export function useCopyPasteShortcuts() {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [canvases, clipboard, setClipboard, lastActivePageIndex]);
+    }, [canvases, clipboard, setClipboard, lastActivePageIndex, duplicateOffset, setDuplicationContext]);
 }
