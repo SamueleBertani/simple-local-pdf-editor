@@ -18,7 +18,6 @@ import { ZoomControls } from './components/toolbar/ZoomControls';
 import { MobileSettingsDrawer } from './components/mobile/MobileSettingsDrawer';
 import { MIN_SCALE, MAX_SCALE, WHEEL_SENSITIVITY } from './constants/zoom';
 import { NotificationContainer } from './components/ui/NotificationContainer';
-import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 /**
  * Main application component for the PDF Editor.
@@ -152,19 +151,7 @@ function App() {
             />
           ) : (
             <>
-              <ErrorBoundary name="PDFViewer" fallback={
-                <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8">
-                  <p>Failed to load PDF Viewer.</p>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm"
-                  >
-                    Reload
-                  </button>
-                </div>
-              }>
-                <PDFViewer />
-              </ErrorBoundary>
+              <PDFViewer />
               <ZoomControls />
             </>
           )}
