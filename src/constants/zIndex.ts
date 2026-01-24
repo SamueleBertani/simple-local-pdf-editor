@@ -1,32 +1,34 @@
 /**
  * Centralized Z-Index management to prevent layer conflicts.
- * 
- * Layers:
- * - BASE: 0-9 (Canvas, background)
- * - OVERLAY: 10-19 (Canvas overlays, annotations)
- * - DRAGGING: 50 (Items being dragged)
- * - UI: 20-49 (Floating UI in canvas)
- * - SIDEBAR: 10 (HTML Sidebars - low because they are usually naturally strictly stacked context)
- * - HEADER: 20 (Mobile header)
- * - TOOLBAR: 30 (Mobile bottom toolbar)
- * - MODAL: 50+ (Dialogs)
+ *
+ * Hierarchy (lowest to highest):
+ * - CANVAS.BASE: 0 (Canvas background)
+ * - CANVAS.OVERLAY: 10 (Canvas overlays, annotations)
+ * - UI.SIDEBAR / UI.SETTINGS_DRAWER: 10 (HTML sidebars - stacking context isolated)
+ * - UI.MOBILE_HEADER: 20 (Mobile header bar)
+ * - UI.MOBILE_TOOLBAR: 30 (Mobile bottom toolbar)
+ * - UI.FLOATING_CONTROLS: 50 (ZoomControls, floating buttons)
+ * - MODAL.BACKDROP: 50 (Modal backdrop overlay)
+ * - CANVAS.DRAG_PREVIEW: 60 (Items being dragged - above floating controls)
+ * - MODAL.CONTENT: 60 (Modal content)
+ * - UI.NOTIFICATIONS: 100 (Toast notifications - always on top)
  */
 export const Z_INDEX = {
     CANVAS: {
         BASE: 0,
         OVERLAY: 10,
-        DRAG_PREVIEW: 50,
+        DRAG_PREVIEW: 60,
     },
     UI: {
         SIDEBAR: 10,
+        SETTINGS_DRAWER: 10,
         MOBILE_HEADER: 20,
         MOBILE_TOOLBAR: 30,
-        SETTINGS_DRAWER: 10,
+        FLOATING_CONTROLS: 50,
         NOTIFICATIONS: 100,
-        FLOATING_CONTROLS: 50, // For ZoomControls etc.
     },
     MODAL: {
-        BACKDROP: 40,
-        CONTENT: 50,
+        BACKDROP: 50,
+        CONTENT: 60,
     }
 } as const;
