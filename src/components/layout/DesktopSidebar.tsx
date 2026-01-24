@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Download, FileDown, Image, Keyboard, Moon, Sun } from 'lucide-react';
 import { Toolbar } from '../toolbar/Toolbar';
 import { ShortcutsModal } from '../modals/ShortcutsModal';
+import { Z_INDEX } from '../../constants/zIndex';
 
 /**
  * Props for the DesktopSidebar component.
@@ -47,7 +48,10 @@ export function DesktopSidebar({
   const [showShortcuts, setShowShortcuts] = useState(false);
 
   return (
-    <div className="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col items-center py-6 gap-6 z-10 shrink-0 relative h-full">
+    <div
+      className="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col items-center py-6 gap-6 shrink-0 relative h-full"
+      style={{ zIndex: Z_INDEX.UI.SIDEBAR }}
+    >
       {/* Tools */}
       <Toolbar />
 

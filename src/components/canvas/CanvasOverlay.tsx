@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Z_INDEX } from '../../constants/zIndex';
 import { useFabric } from '../../hooks/useFabric';
 import { useToolStore } from '../../store/useToolStore';
 import { usePDFStore } from '../../store/usePDFStore';
@@ -70,7 +71,7 @@ export function CanvasOverlay({ width, height, scale, pageIndex }: CanvasOverlay
     return (
         <div
             className="absolute inset-0 pointer-events-auto"
-            style={{ zIndex: isDraggingCanvas ? 50 : 10 }}
+            style={{ zIndex: isDraggingCanvas ? Z_INDEX.CANVAS.DRAG_PREVIEW : Z_INDEX.CANVAS.OVERLAY }}
         >
             <canvas ref={canvasRef} />
 

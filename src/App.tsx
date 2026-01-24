@@ -18,6 +18,7 @@ import { ZoomControls } from './components/toolbar/ZoomControls';
 import { MobileSettingsDrawer } from './components/mobile/MobileSettingsDrawer';
 import { MIN_SCALE, MAX_SCALE, WHEEL_SENSITIVITY } from './constants/zoom';
 import { NotificationContainer } from './components/ui/NotificationContainer';
+import { Z_INDEX } from './constants/zIndex';
 
 /**
  * Main application component for the PDF Editor.
@@ -90,7 +91,10 @@ function App() {
       <main className="flex-1 flex overflow-hidden relative">
         {/* Mobile Header */}
         {pdfDocument && (
-          <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 z-20">
+          <div
+            className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4"
+            style={{ zIndex: Z_INDEX.UI.MOBILE_HEADER }}
+          >
             <button
               onClick={toggleTheme}
               className="p-2 text-slate-600 dark:text-slate-400"
@@ -168,7 +172,10 @@ function App() {
 
       {/* Mobile Bottom Toolbar */}
       {pdfDocument && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-30 pb-safe">
+        <div
+          className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pb-safe"
+          style={{ zIndex: Z_INDEX.UI.MOBILE_TOOLBAR }}
+        >
           <Toolbar orientation="horizontal" />
         </div>
       )}
