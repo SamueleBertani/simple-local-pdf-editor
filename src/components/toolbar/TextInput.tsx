@@ -6,8 +6,8 @@ const TEXT_COLORS = ['#000000', '#EF4444', '#3B82F6', '#10B981', '#FFFFFF', '#6B
 
 /** Base styles for font family selection buttons */
 const FONT_BTN_BASE = "flex-1 py-2 text-sm border rounded-lg transition-colors";
-const FONT_BTN_SELECTED = "bg-indigo-600 border-indigo-600 text-white shadow-md";
-const FONT_BTN_UNSELECTED = "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500";
+const FONT_BTN_SELECTED = "bg-primary-600 border-primary-600 text-white shadow-md";
+const FONT_BTN_UNSELECTED = "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-300 dark:hover:border-primary-500";
 
 export function TextInput() {
     const { toolSettings, setToolSettings } = useToolStore();
@@ -24,7 +24,7 @@ export function TextInput() {
                             max="72"
                             value={toolSettings.fontSize}
                             onChange={(e) => setToolSettings({ fontSize: Number(e.target.value) })}
-                            className="flex-1 accent-indigo-600 h-2 bg-slate-100 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+                            className="flex-1 accent-primary-500 h-2 bg-slate-100 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
                         />
                         <span className="text-sm font-semibold text-slate-600 dark:text-slate-400 w-8 text-right">{toolSettings.fontSize}</span>
                     </div>

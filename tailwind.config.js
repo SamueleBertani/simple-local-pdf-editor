@@ -8,7 +8,7 @@
  * ---------------------
  * 1. Use `cn()` from 'src/utils/cn.ts' for all className attributes
  * 2. Always include dark: variants for color-related classes
- * 3. Use the z-index scale below for layering (never hardcode z-index values)
+ * 3. Use Z_INDEX constants from 'src/constants/zIndex.ts' for layering
  * 4. Prefer existing component classes from index.css when available
  *
  * See STYLING.md for complete style guide.
@@ -34,6 +34,20 @@ export default {
        * Use these instead of raw slate-* values when possible.
        */
       colors: {
+        // Primary brand colors (orange from logo #F4971E)
+        primary: {
+          50: '#FEF7ED',       // Very light orange bg
+          100: '#FEF3E2',      // Light orange bg (selected states)
+          200: '#FDDCAB',      // Hover backgrounds
+          300: '#FBBD74',      // Light accents
+          400: '#F9A03F',      // Medium orange
+          500: '#F4971E',      // Brand color (logo)
+          600: '#DB7E0B',      // Darker for better contrast
+          700: '#B5710A',      // Text on light (AA accessible)
+          800: '#92510D',      // Dark text
+          900: '#7C4006',      // Very dark (dark mode text)
+          950: '#432106',      // Darkest
+        },
         // Surface colors for backgrounds
         surface: {
           DEFAULT: 'rgb(255 255 255)',      // white - primary surface
@@ -48,27 +62,6 @@ export default {
           light: 'rgb(241 245 249)',         // slate-100 - subtle border
           'light-dark': 'rgb(30 41 59)',     // slate-800 - dark mode subtle
         },
-      },
-
-      /**
-       * Z-Index Scale
-       * -------------
-       * ALWAYS use these tokens instead of hardcoded z-index values.
-       * This ensures consistent layering across the application.
-       *
-       * Layer hierarchy (lowest to highest):
-       * - canvas (10): PDF pages and canvas elements
-       * - toolbar (20): Floating toolbars
-       * - canvas-active (50): Active canvas elements being dragged
-       * - modal (50): Modal dialogs and overlays
-       * - notification (60): Toast notifications (always on top)
-       */
-      zIndex: {
-        'canvas': '10',
-        'canvas-active': '50',
-        'toolbar': '20',
-        'modal': '50',
-        'notification': '60',
       },
     },
   },

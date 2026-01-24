@@ -23,11 +23,11 @@ function ToolBtn({ tool, icon: Icon, label, title, activeTool, orientation, onCl
                 "flex items-center gap-3 p-3 rounded-lg transition-colors text-left shrink-0",
                 orientation === 'vertical' ? "w-full" : "flex-1 justify-center flex-col gap-1 p-2",
                 activeTool === tool
-                    ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 font-medium shadow-sm ring-1 ring-indigo-200 dark:ring-indigo-800"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    ? "bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-medium shadow-sm ring-1 ring-primary-200 dark:ring-primary-800"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-primary-600 dark:hover:text-primary-400"
             )}
         >
-            <Icon className={cn("w-5 h-5", activeTool === tool && "fill-indigo-100")} />
+            <Icon className="w-5 h-5" />
             <span className={cn("text-sm", orientation === 'horizontal' && "text-[10px]")}>{label}</span>
         </button>
     );

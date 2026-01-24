@@ -53,12 +53,13 @@ Use these colors consistently:
 
 | Purpose | Light Mode | Dark Mode |
 |---------|-----------|-----------|
-| **Primary action** | `indigo-600` | `indigo-400` |
-| **Primary bg** | `indigo-50` | `indigo-900/20` |
-| **Warning** | `amber-500` | `amber-400` |
+| **Primary action** | `primary-500` (#F4971E) | `primary-400` |
+| **Primary text** | `primary-700` (AA accessible) | `primary-300` |
+| **Primary bg** | `primary-100` | `primary-900/20` |
+| **Warning** | `yellow-500` | `yellow-400` |
 | **Warning bg** | `amber-50` | `amber-900/20` |
 | **Error** | `red-500` | `red-400` |
-| **Success** | `green-500` | `green-400` |
+| **Success** | `emerald-500` | `emerald-400` |
 | **Surface** | `white` | `slate-900` |
 | **Surface secondary** | `slate-50` | `slate-800` |
 | **Border** | `slate-200` | `slate-700/800` |
@@ -117,25 +118,32 @@ Use consistent spacing values:
 
 ## 7. Z-Index Scale
 
-**Never hardcode z-index values.** Use the tokens from `tailwind.config.js`:
+**Never hardcode z-index values.** Use constants from `src/constants/zIndex.ts`:
 
 ```tsx
+import { Z_INDEX } from '../constants/zIndex';
+
 // ✅ CORRECT
-<div className="z-modal">...</div>
-<div className="z-notification">...</div>
+<div style={{ zIndex: Z_INDEX.UI.SIDEBAR }}>...</div>
+<div style={{ zIndex: Z_INDEX.MODAL.CONTENT }}>...</div>
 
 // ❌ WRONG
 <div className="z-50">...</div>
 <div style={{ zIndex: 100 }}>...</div>
 ```
 
-| Token | Value | Use for |
-|-------|-------|---------|
-| `z-canvas` | 10 | PDF pages, canvas |
-| `z-toolbar` | 20 | Floating toolbars |
-| `z-canvas-active` | 50 | Dragged elements |
-| `z-modal` | 50 | Modal dialogs |
-| `z-notification` | 60 | Toast notifications |
+| Constant | Value | Use for |
+|----------|-------|---------|
+| `Z_INDEX.CANVAS.BASE` | 0 | Canvas background |
+| `Z_INDEX.CANVAS.OVERLAY` | 10 | Canvas overlays, annotations |
+| `Z_INDEX.UI.SIDEBAR` | 10 | Desktop sidebar |
+| `Z_INDEX.UI.MOBILE_HEADER` | 20 | Mobile header bar |
+| `Z_INDEX.UI.MOBILE_TOOLBAR` | 30 | Mobile bottom toolbar |
+| `Z_INDEX.UI.FLOATING_CONTROLS` | 50 | Zoom controls, floating buttons |
+| `Z_INDEX.MODAL.BACKDROP` | 50 | Modal backdrop |
+| `Z_INDEX.CANVAS.DRAG_PREVIEW` | 60 | Items being dragged |
+| `Z_INDEX.MODAL.CONTENT` | 60 | Modal content |
+| `Z_INDEX.UI.NOTIFICATIONS` | 100 | Toast notifications (always on top) |
 
 ## 8. Complex Conditional Styles
 
@@ -149,14 +157,14 @@ function getButtonStyles(isSelected: boolean, variant: 'primary' | 'warning') {
   }
   return variant === 'warning'
     ? "border-amber-500 bg-amber-50 dark:bg-amber-900/20"
-    : "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20";
+    : "border-primary-500 bg-primary-100 dark:bg-primary-900/20";
 }
 
 <button className={cn("base-styles", getButtonStyles(isSelected, variant))} />
 
 // ✅ CORRECT - Constants for repeated patterns
 const BTN_BASE = "flex-1 py-2 text-sm border rounded-lg transition-colors";
-const BTN_SELECTED = "bg-indigo-600 border-indigo-600 text-white";
+const BTN_SELECTED = "bg-primary-600 border-primary-600 text-white";
 const BTN_UNSELECTED = "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700";
 
 <button className={cn(BTN_BASE, isSelected ? BTN_SELECTED : BTN_UNSELECTED)} />
@@ -210,7 +218,7 @@ function Card({ isSelected, children }) {
 // ❌ Multiple issues
 function Card({ isSelected, children }) {
   return (
-    <div className={`p-4 rounded-xl border-2 ${isSelected ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200'}`}>
+    <div className={`p-4 rounded-xl border-2 ${isSelected ? 'border-primary-500 bg-primary-100' : 'border-slate-200'}`}>
       <h3 className="text-slate-900 font-semibold">{title}</h3>  {/* Missing dark mode */}
       <p style={{ color: '#64748b' }}>{description}</p>  {/* Inline style */}
     </div>

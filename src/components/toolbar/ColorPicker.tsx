@@ -21,7 +21,7 @@ export const ColorPicker = memo(function ColorPicker({ colors, value, onChange, 
                         className={cn(
                             "w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center",
                             value === c
-                                ? "border-indigo-600 scale-110 ring-2 ring-indigo-200 dark:ring-indigo-900"
+                                ? "border-primary-500 scale-110 ring-2 ring-primary-200 dark:ring-primary-900"
                                 : "border-slate-200 dark:border-slate-700 hover:scale-105"
                         )}
                         style={{ backgroundColor: c }}
@@ -31,7 +31,7 @@ export const ColorPicker = memo(function ColorPicker({ colors, value, onChange, 
                     >
                         {value === c && (
                             <Check className={cn("w-4 h-4",
-                                c === '#FFFFFF' ? "text-indigo-600" : "text-white drop-shadow-sm"
+                                c === '#FFFFFF' ? "text-primary-600" : "text-white drop-shadow-sm"
                             )} />
                         )}
                     </button>

@@ -42,8 +42,8 @@ export function SliderInput({
         : 'text-xs text-slate-500 dark:text-slate-400';
 
     const sliderClasses = variant === 'compact'
-        ? 'w-full accent-indigo-600 h-1 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer'
-        : 'w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600';
+        ? 'w-full accent-primary-500 h-1 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer'
+        : 'w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary-500';
 
     return (
         <div>

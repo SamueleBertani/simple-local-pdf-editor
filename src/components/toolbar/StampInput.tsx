@@ -19,8 +19,8 @@ export function StampInput() {
                             className={cn(
                                 "group relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all",
                                 isSelected
-                                    ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm"
-                                    : "border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                    ? "border-primary-500 bg-primary-100 dark:bg-primary-900/20 shadow-sm"
+                                    : "border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800"
                             )}
                         >
                             <div className="w-full aspect-square flex items-center justify-center bg-white dark:bg-slate-800 rounded-lg p-2 border border-slate-100 dark:border-slate-700">
@@ -33,14 +33,14 @@ export function StampInput() {
                             <span className={cn(
                                 "text-xs font-medium text-center",
                                 isSelected
-                                    ? "text-indigo-700 dark:text-indigo-300"
+                                    ? "text-primary-700 dark:text-primary-300"
                                     : "text-slate-600 dark:text-slate-400"
                             )}>
                                 {stamp.label}
                             </span>
 
                             {isSelected && (
-                                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-indigo-600 animate-in zoom-in" />
+                                <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-500 animate-in zoom-in" />
                             )}
                         </button>
                     );

@@ -106,7 +106,7 @@ export function ScannerEffectModal({ isOpen, onClose, onDownload, previewCanvas,
                                 type="checkbox"
                                 checked={options.grayscale}
                                 onChange={e => updateOption('grayscale', e.target.checked)}
-                                className="h-5 w-5 accent-indigo-600"
+                                className="h-5 w-5 accent-primary-500"
                             />
                         </div>
                     </div>

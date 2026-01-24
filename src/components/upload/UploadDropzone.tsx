@@ -68,7 +68,7 @@ export function UploadDropzone({
         className={cn(
           "bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border-2 flex flex-col items-center max-w-md w-full mx-4 transition-all duration-200",
           isDragging
-            ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 scale-105"
+            ? "border-primary-500 bg-primary-100 dark:bg-primary-900/20 scale-105"
             : "border-slate-200 dark:border-slate-800 border-dashed"
         )}
         onDragOver={onDragOver}
@@ -78,13 +78,13 @@ export function UploadDropzone({
         <Upload
           className={cn(
             "w-12 h-12 mb-4 transition-colors",
-            isDragging ? "text-indigo-600 dark:text-indigo-400" : "text-slate-300 dark:text-slate-600"
+            isDragging ? "text-primary-500 dark:text-primary-400" : "text-slate-300 dark:text-slate-600"
           )}
         />
         <p
           className={cn(
             "text-lg font-medium text-center mb-1 transition-colors",
-            isDragging ? "text-indigo-700 dark:text-indigo-300" : "text-slate-600 dark:text-slate-300"
+            isDragging ? "text-primary-700 dark:text-primary-300" : "text-slate-600 dark:text-slate-300"
           )}
         >
           {isDragging ? "Drop PDF here" : "Upload a PDF to start editing"}
@@ -92,7 +92,7 @@ export function UploadDropzone({
         <p
           className={cn(
             "text-sm text-center mb-6 transition-colors",
-            isDragging ? "text-indigo-500 dark:text-indigo-400" : "text-slate-400 dark:text-slate-500"
+            isDragging ? "text-primary-600 dark:text-primary-400" : "text-slate-400 dark:text-slate-500"
           )}
         >
           {isDragging ? "Release to open" : "Drag & Drop or click to select"}

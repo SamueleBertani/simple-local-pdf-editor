@@ -119,7 +119,7 @@ function App() {
               </button>
               <button
                 onClick={handleQuickSavePDF}
-                className="flex items-center gap-1 p-2 text-white font-medium text-sm bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm"
+                className="flex items-center gap-1 p-2 text-white font-medium text-sm bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm"
                 aria-label="Save PDF"
               >
                 <Download className="w-4 h-4" />

@@ -40,10 +40,10 @@ function getOptionStyles(isSelected: boolean, isReencodeOption: boolean) {
         };
     }
     return {
-        button: "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20",
-        title: "text-indigo-700 dark:text-indigo-300",
-        badge: "bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300",
-        description: "text-indigo-600 dark:text-indigo-400"
+        button: "border-primary-500 bg-primary-100 dark:bg-primary-900/20",
+        title: "text-primary-700 dark:text-primary-300",
+        badge: "bg-primary-100 dark:bg-primary-800 text-primary-600 dark:text-primary-300",
+        description: "text-primary-600 dark:text-primary-400"
     };
 }
 
@@ -57,13 +57,13 @@ function ProgressBar({ progress, stage }: { progress: number; stage?: string }) 
                 <span className="text-slate-600 dark:text-slate-400">
                     {stage || 'Processing...'}
                 </span>
-                <span className="font-medium text-indigo-600 dark:text-indigo-400">
+                <span className="font-medium text-primary-600 dark:text-primary-400">
                     {Math.round(progress)}%
                 </span>
             </div>
             <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div
-                    className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full transition-all duration-300 ease-out"
+                    className="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all duration-300 ease-out"
                     style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
                 />
             </div>

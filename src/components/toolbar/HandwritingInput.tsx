@@ -47,7 +47,7 @@ export function HandwritingInput() {
                 {/* Shuffle Button (Inside Preview) */}
                 <button
                     onClick={() => setSeed(s => s + 1)}
-                    className="absolute top-2 right-2 p-1.5 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 rounded-md shadow-sm border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+                    className="absolute top-2 right-2 p-1.5 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-800 rounded-md shadow-sm border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-all"
                     title="Shuffle Variation"
                 >
                     <Shuffle className="w-4 h-4" />
@@ -59,7 +59,7 @@ export function HandwritingInput() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Type your signature..."
-                className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-base dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-base dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow"
                 autoFocus
             />
 

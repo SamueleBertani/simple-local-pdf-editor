@@ -61,7 +61,7 @@ export function DesktopSidebar({
       <div className="flex gap-2 px-4">
         <button
           onClick={onToggleTheme}
-          className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         >
@@ -69,7 +69,7 @@ export function DesktopSidebar({
         </button>
         <button
           onClick={() => setShowShortcuts(true)}
-          className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           title="Keyboard Shortcuts"
           aria-label="Show keyboard shortcuts"
         >
@@ -83,7 +83,7 @@ export function DesktopSidebar({
       <div className="flex flex-col gap-3 w-full px-4">
         <button
           onClick={onQuickSavePDF}
-          className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
+          className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
           title="Save PDF (high quality)"
         >
           <Download className="w-5 h-5" />
@@ -92,7 +92,7 @@ export function DesktopSidebar({
 
         <button
           onClick={onExportPDF}
-          className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
+          className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
           title="Minimize PDF (compression options)"
         >
           <FileDown className="w-5 h-5" />
@@ -101,7 +101,7 @@ export function DesktopSidebar({
 
         <button
           onClick={onScannerExport}
-          className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
+          className="flex items-center gap-3 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 w-full"
           title="Scanner Export (PNG)"
         >
           <Image className="w-5 h-5" />
