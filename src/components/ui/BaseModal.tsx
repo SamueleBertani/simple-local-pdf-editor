@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../utils/cn';
+import { Z_INDEX } from '../../constants/zIndex';
 
 interface BaseModalProps {
     /** Whether the modal is open */
@@ -102,6 +103,7 @@ export function BaseModal({
         return createPortal(
             <div
                 className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+                style={{ zIndex: Z_INDEX.MODAL.BACKDROP }}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={ariaLabelId}
@@ -123,6 +125,7 @@ export function BaseModal({
     return createPortal(
         <div
             className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+            style={{ zIndex: Z_INDEX.MODAL.BACKDROP }}
             role="dialog"
             aria-modal="true"
             aria-labelledby={ariaLabelId}

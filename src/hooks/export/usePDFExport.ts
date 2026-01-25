@@ -120,7 +120,7 @@ export function usePDFExport(): UsePDFExportReturn {
         } finally {
             setIsExporting(false);
         }
-    }, [pdfDocument, canvases, addNotification]);
+    }, [pdfDocument, canvases, addNotification, fileName]);
 
     /**
      * Exports the PDF with the specified quality options.
@@ -188,7 +188,7 @@ export function usePDFExport(): UsePDFExportReturn {
         } finally {
             setIsExporting(false);
         }
-    }, [pdfDocument, canvases, addNotification]);
+    }, [pdfDocument, canvases, addNotification, fileName]);
 
     return {
         isExportModalOpen,

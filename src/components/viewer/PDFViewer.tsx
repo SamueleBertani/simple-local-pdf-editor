@@ -80,7 +80,7 @@ export function PDFViewer() {
     }
 
     return (
-        <div ref={containerRef} className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-950/50 p-8 flex flex-col items-center">
+        <div ref={containerRef} className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-950/50 p-8 flex flex-col items-center isolate">
             {pages.map((page, index) => (
                 <PDFPage key={index} page={page} scale={scale} />
             ))}

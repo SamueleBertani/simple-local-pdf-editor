@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Plus, X } from 'lucide-react';
 import { useToolStore } from '../../store/useToolStore';
 import { cn } from '../../utils/cn';
@@ -13,20 +13,15 @@ interface SavedStamp {
 
 export function StampInput() {
     const { setPendingImage, pendingImage } = useToolStore();
-    const [stamps, setStamps] = useState<SavedStamp[]>([]);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // Carica le firme salvate da localStorage all'avvio
-    useEffect(() => {
+    const [stamps, setStamps] = useState<SavedStamp[]>(() => {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                setStamps(JSON.parse(saved));
-            }
+            return saved ? JSON.parse(saved) : [];
         } catch {
-            // Ignora errori di parsing
+            return [];
         }
-    }, []);
+    });
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Salva le firme in localStorage quando cambiano
     const saveStamps = (newStamps: SavedStamp[]) => {
