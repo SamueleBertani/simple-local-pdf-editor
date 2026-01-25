@@ -1,5 +1,5 @@
 import type { ChangeEvent, DragEvent } from 'react';
-import { Upload } from 'lucide-react';
+import { Upload, Github } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { Button } from '../ui/Button';
 
@@ -110,6 +110,16 @@ export function UploadDropzone({
           </Button>
         </div>
       </div>
+
+      <a
+        href="https://github.com/SamueleBertani/localPDFeditorV2"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-8 flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+      >
+        <Github className="w-4 h-4" />
+        View on GitHub
+      </a>
     </div>
   );
 }
