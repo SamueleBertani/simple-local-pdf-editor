@@ -50,7 +50,7 @@ export const Toast = ({ id, type, title, message, onDismiss }: ToastProps) => {
     return (
         <div
             className={cn(
-                "flex items-start gap-3 p-4 rounded-lg border shadow-lg transition-all animate-in slide-in-from-right-full duration-300 max-w-sm w-full pointer-events-auto",
+                "flex items-start gap-3 p-4 rounded-lg border shadow-lg transition-all animate-in slide-in-from-top duration-300 max-w-sm w-full pointer-events-auto",
                 styles[type]
             )}
             role="alert"
