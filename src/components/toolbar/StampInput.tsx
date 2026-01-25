@@ -23,13 +23,12 @@ export function StampInput() {
     });
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Salva le firme in localStorage quando cambiano
     const saveStamps = (newStamps: SavedStamp[]) => {
         setStamps(newStamps);
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(newStamps));
         } catch {
-            // localStorage pieno o non disponibile
+            // localStorage full or unavailable
         }
     };
 
@@ -47,14 +46,13 @@ export function StampInput() {
             const newStamp: SavedStamp = {
                 id: `stamp_${Date.now()}`,
                 url,
-                label: `Firma ${stamps.length + 1}`
+                label: `Signature ${stamps.length + 1}`
             };
             saveStamps([...stamps, newStamp]);
             setPendingImage(url);
         };
         reader.readAsDataURL(file);
 
-        // Reset input per permettere di caricare la stessa immagine
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -65,7 +63,6 @@ export function StampInput() {
         const stampToRemove = stamps.find(s => s.id === id);
         saveStamps(stamps.filter(s => s.id !== id));
 
-        // Se la firma rimossa era selezionata, deseleziona
         if (stampToRemove && pendingImage === stampToRemove.url) {
             setPendingImage(null);
         }
@@ -76,7 +73,6 @@ export function StampInput() {
             <h3 className="text-sm font-semibold mb-3 sr-only">Stamp Selection</h3>
 
             <div className="grid grid-cols-2 gap-3">
-                {/* Firme caricate dall'utente */}
                 {stamps.map((stamp) => {
                     const isSelected = pendingImage === stamp.url;
                     return (
@@ -90,10 +86,10 @@ export function StampInput() {
                                     : "border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-500 hover:bg-slate-50 dark:hover:bg-slate-800"
                             )}
                         >
-                            {/* Bottone rimuovi */}
                             <button
                                 onClick={(e) => handleRemoveStamp(stamp.id, e)}
                                 className="absolute top-1 right-1 p-1 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-red-100 dark:hover:bg-red-900/30 text-slate-500 hover:text-red-500 transition-colors z-10"
+                                aria-label="Remove signature"
                             >
                                 <X className="w-3 h-3" />
                             </button>
@@ -121,7 +117,6 @@ export function StampInput() {
                     );
                 })}
 
-                {/* Box per aggiungere nuova firma */}
                 <button
                     onClick={() => fileInputRef.current?.click()}
                     className={cn(
@@ -134,7 +129,7 @@ export function StampInput() {
                         <Plus className="w-8 h-8 text-slate-400 dark:text-slate-500 group-hover:text-primary-500 transition-colors" />
                     </div>
                     <span className="text-xs font-medium text-slate-500 dark:text-slate-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                        Aggiungi firma
+                        Add signature
                     </span>
                 </button>
             </div>
@@ -149,8 +144,8 @@ export function StampInput() {
 
             <p className="text-xs text-slate-400 text-center mt-4">
                 {stamps.length === 0
-                    ? "Carica un'immagine per usarla come firma"
-                    : "Seleziona una firma e clicca sul canvas per posizionarla"
+                    ? "Upload an image to use as signature"
+                    : "Select a signature and click on canvas to place it"
                 }
             </p>
         </div>
