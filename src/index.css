@@ -42,6 +42,13 @@
   body {
     @apply antialiased bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100;
   }
+
+  /* Create stacking context for app root so portaled modals are always on top */
+  #root {
+    @apply relative;
+    z-index: 0;
+    isolation: isolate;
+  }
 }
 
 @layer components {

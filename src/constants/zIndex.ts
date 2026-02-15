@@ -1,39 +1,35 @@
 /**
  * Centralized Z-Index management.
- * 
- * STRATEGY: Isolation & Semantic Layers
- * -------------------------------------
- * We use `isolation: isolate` on the PDFViewer to create a new Stacking Context.
- * This effectively "traps" the high z-indices of dragged items (50) inside the viewer,
- * preventing them from leaking out and covering Modals.
- * 
- * GLOBAL CONTEXT (App Root):
- * - UI Elements (Sidebars, Toolbars): 10-30
- * - Modals: 50+
- * - Notifications: 100+
- * 
- * LOCAL CONTEXT (Inside Isolated PDFViewer):
- * - Canvas Layers: 0-10
- * - Dragged Items: 50 (Contained)
+ *
+ * LAYER HIERARCHY (lowest to highest):
+ * ------------------------------------
+ * 1. Canvas layers (0-50) - PDF pages and annotations
+ * 2. UI Elements (100-150) - Sidebars, toolbars, floating controls
+ * 3. Modals (200-210) - Dialogs that block interaction
+ * 4. Notifications (300) - Always on top
+ *
+ * Note: Modals use createPortal to document.body, so they are siblings
+ * of #root and need explicit z-index higher than all app content.
  */
 export const Z_INDEX = {
-    // Local Context (inside isolated viewer)
+    // Canvas layers (inside PDFViewer)
     CANVAS: {
         BASE: 0,
         OVERLAY: 10,
         DRAG_PREVIEW: 50,
     },
-    // Global Context
+    // UI Elements
     UI: {
-        SIDEBAR: 10,
-        SETTINGS_DRAWER: 10,
-        MOBILE_HEADER: 20,
-        MOBILE_TOOLBAR: 20,
-        FLOATING_CONTROLS: 30,
-        NOTIFICATIONS: 100,
+        SIDEBAR: 100,
+        SETTINGS_DRAWER: 100,
+        MOBILE_HEADER: 110,
+        MOBILE_TOOLBAR: 110,
+        FLOATING_CONTROLS: 120,
+        NOTIFICATIONS: 300,
     },
+    // Modals (portaled to body, must be above all app content)
     MODAL: {
-        BACKDROP: 50,
-        CONTENT: 60,
+        BACKDROP: 200,
+        CONTENT: 210,
     }
 } as const;
