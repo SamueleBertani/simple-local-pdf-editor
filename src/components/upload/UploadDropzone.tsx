@@ -112,7 +112,7 @@ export function UploadDropzone({
       </div>
 
       <a
-        href="https://github.com/SamueleBertani/localPDFeditorV2"
+        href="https://github.com/SamueleBertani/simple-local-pdf-editor"
         target="_blank"
         rel="noopener noreferrer"
         className="mt-8 flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
