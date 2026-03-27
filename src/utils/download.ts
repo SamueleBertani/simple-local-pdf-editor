@@ -1,3 +1,28 @@
+import confetti from 'canvas-confetti';
+
+/**
+ * Triggers a confetti animation for successful exports.
+ */
+export function triggerConfetti(): void {
+    confetti({
+        particleCount: 160,
+        spread: 100,
+        origin: { y: 0.6 }
+    });
+    setTimeout(() => {
+        confetti({
+            particleCount: 80,
+            spread: 120,
+            origin: { x: 0.2, y: 0.7 }
+        });
+        confetti({
+            particleCount: 80,
+            spread: 120,
+            origin: { x: 0.8, y: 0.7 }
+        });
+    }, 200);
+}
+
 /**
  * Downloads a Blob as a file by creating a temporary anchor element.
  *

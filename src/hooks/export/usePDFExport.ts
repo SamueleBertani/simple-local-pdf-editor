@@ -5,8 +5,7 @@ import { exportToPdf, EXPORT_QUALITY_PRESETS } from '../../core/pdf/exporter';
 import type { ExportQualityOptions } from '../../core/pdf/exporter';
 import { compressPDF, downloadPDF } from '../../core/pdf/compressionManager';
 import type { CompressionLevel } from '../../core/pdf/compressionManager';
-import { downloadPdfBytes } from '../../utils/download';
-import confetti from 'canvas-confetti';
+import { downloadPdfBytes, triggerConfetti } from '../../utils/download';
 
 /** Bytes in a kilobyte */
 const BYTES_PER_KB = 1024;
@@ -24,28 +23,6 @@ function formatFileSize(bytes: number): string {
     return `${(bytes / BYTES_PER_MB).toFixed(2)} MB`;
 }
 
-/**
- * Triggers a confetti animation for successful exports.
- */
-function triggerConfetti(): void {
-    confetti({
-        particleCount: 160,
-        spread: 100,
-        origin: { y: 0.6 }
-    });
-    setTimeout(() => {
-        confetti({
-            particleCount: 80,
-            spread: 120,
-            origin: { x: 0.2, y: 0.7 }
-        });
-        confetti({
-            particleCount: 80,
-            spread: 120,
-            origin: { x: 0.8, y: 0.7 }
-        });
-    }, 200);
-}
 
 /**
  * Return type for the usePDFExport hook.

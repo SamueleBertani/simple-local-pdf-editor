@@ -3,31 +3,7 @@ import { usePDFStore } from '../../store/usePDFStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import { exportToImages, renderPageToCanvas } from '../../core/pdf/exporter';
 import type { ScannerOptions } from '../../core/image/scannerEffect';
-import { downloadFile } from '../../utils/download';
-import confetti from 'canvas-confetti';
-
-/**
- * Triggers a confetti animation for successful exports.
- */
-function triggerConfetti(): void {
-    confetti({
-        particleCount: 160,
-        spread: 100,
-        origin: { y: 0.6 }
-    });
-    setTimeout(() => {
-        confetti({
-            particleCount: 80,
-            spread: 120,
-            origin: { x: 0.2, y: 0.7 }
-        });
-        confetti({
-            particleCount: 80,
-            spread: 120,
-            origin: { x: 0.8, y: 0.7 }
-        });
-    }, 200);
-}
+import { downloadFile, triggerConfetti } from '../../utils/download';
 
 /**
  * Return type for the useScannerExport hook.
